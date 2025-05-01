@@ -5,6 +5,7 @@ export class RegisterAccountRequest {
 }
 
 export class AccountResponse {
+  id?: number;
   username: string;
   level_id: number;
   token?: string;
@@ -21,4 +22,11 @@ export class AccountType {
   password: string;
   level_id: number;
   token?: string;
+}
+
+export class UpdateAccountRequest {
+  id?: number;
+  username?: string;
+  password?: string;
+  level_id?: string;
 }

@@ -7,4 +7,8 @@ export class EmployeeLoanValidation {
     status: z.string().min(1).max(100),
     employee_id: z.number().positive(),
   });
+
+  static readonly UPDATE: ZodType = z.object({
+    status: z.string().min(1).max(100),
+  });
 }

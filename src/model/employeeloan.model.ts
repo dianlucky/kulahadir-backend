@@ -16,3 +16,8 @@ export class CreateEmployeeLoanRequest {
   status: string;
   employee_id?: number;
 }
+
+export class UpdateEmployeeLoanRequest {
+  id: number;
+  status: string;
+}

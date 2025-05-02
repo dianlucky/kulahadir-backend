@@ -6,6 +6,7 @@ import { Employee, EmployeeLoan } from '@prisma/client';
 import {
   CreateEmployeeLoanRequest,
   EmployeeLoanResponse,
+  UpdateEmployeeLoanRequest,
 } from '../model/employeeloan.model';
 import { EmployeeService } from 'src/employee/employee.service';
 
@@ -71,5 +72,84 @@ export class EmployeeLoanService {
     });
 
     return this.toEmployeeLoanResponse(employeeLoan);
+  }
+
+  async get(
+    employeeId: number,
+    date?: string,
+    status?: string,
+  ): Promise<{ data: EmployeeLoanResponse[] }> {
+    await this.employeeService.checkEmployeeMustExists(employeeId);
+
+    let dateFilter = {};
+    if (date) {
+      const parts = date.split('-');
+      if (parts.length === 1) {
+        // Format 'YYYY'
+        const start = new Date(`${date}-01-01T00:00:00.000Z`);
+        const end = new Date(`${Number(date) + 1}-01-01T00:00:00.000Z`);
+        dateFilter = {
+          date: {
+            gte: start,
+            lt: end,
+          },
+        };
+      } else if (parts.length === 2) {
+        // Format 'YYYY-MM'
+        const start = new Date(`${date}-01T00:00:00.000Z`);
+        const [year, month] = parts.map(Number);
+        const end =
+          month === 12
+            ? new Date(`${year + 1}-01-01T00:00:00.000Z`)
+            : new Date(
+                `${year}-${String(month + 1).padStart(2, '0')}-01T00:00:00.000Z`,
+              );
+        dateFilter = {
+          date: {
+            gte: start,
+            lt: end,
+          },
+        };
+      }
+    }
+
+    const employeeloans = await this.prismaService.employeeLoan.findMany({
+      where: {
+        employee_id: employeeId,
+        ...dateFilter,
+        ...(status ? { status } : {}),
+      },
+      include: {
+        employee: true,
+      },
+    });
+
+    return {
+      data: employeeloans.map((loan) => this.toEmployeeLoanResponse(loan)),
+    };
+  }
+
+  async update(
+    loanId: number,
+    request: UpdateEmployeeLoanRequest,
+  ): Promise<EmployeeLoanResponse> {
+    const validatedData: UpdateEmployeeLoanRequest =
+      await this.validationService.validate(
+        EmployeeLoanValidation.UPDATE,
+        request,
+      );
+    await this.checkEmployeeLoanMustExists(loanId);
+
+    const result = await this.prismaService.employeeLoan.update({
+      where: {
+        id: loanId,
+      },
+      include: {
+        employee: true,
+      },
+      data: validatedData,
+    });
+
+    return this.toEmployeeLoanResponse(result);
   }
 }

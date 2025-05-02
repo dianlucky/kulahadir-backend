@@ -7,5 +7,6 @@ import { EmployeeModule } from '../employee/employee.module';
   imports: [EmployeeModule],
   providers: [EmployeeLoanService],
   controllers: [EmployeeLoanController],
+  exports: [EmployeeLoanService],
 })
 export class EmployeeLoanModule {}

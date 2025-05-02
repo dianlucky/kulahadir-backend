@@ -64,14 +64,14 @@ export class EmployeeLoanService {
       request,
     );
     await this.employeeService.checkEmployeeMustExists(request.employee_id);
-    const employeeLoan = await this.prismaService.employeeLoan.create({
+    const result = await this.prismaService.employeeLoan.create({
       data: validatedData,
       include: {
         employee: true,
       },
     });
 
-    return this.toEmployeeLoanResponse(employeeLoan);
+    return this.toEmployeeLoanResponse(result);
   }
 
   async get(

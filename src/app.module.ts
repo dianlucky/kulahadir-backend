@@ -4,6 +4,7 @@ import { LevelModule } from './level/level.module';
 import { AccountModule } from './account/account.module';
 import { EmployeeModule } from './employee/employee.module';
 import { EmployeeLoanModule } from './employee-loan/employeeloan.module';
+import { SalaryDeductionModule } from './salary-deduction/salarydeduction.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { EmployeeLoanModule } from './employee-loan/employeeloan.module';
     AccountModule,
     EmployeeModule,
     EmployeeLoanModule,
+    SalaryDeductionModule,
   ],
   controllers: [],
   providers: [],

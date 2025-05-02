@@ -13,7 +13,7 @@ import { LevelValidation } from './level.validation';
 @Injectable()
 export class LevelService {
   constructor(
-    @Inject(WINSTON_MODULE_PROVIDER)
+    @Inject(WINSTON_MODULE_PROVIDER) private logger: Logger,
     private prismaService: PrismaService,
     private validationService: ValidationService,
   ) {}

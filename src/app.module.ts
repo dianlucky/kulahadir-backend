@@ -5,6 +5,7 @@ import { AccountModule } from './account/account.module';
 import { EmployeeModule } from './employee/employee.module';
 import { EmployeeLoanModule } from './employee-loan/employeeloan.module';
 import { SalaryDeductionModule } from './salary-deduction/salarydeduction.module';
+import { DailyTaskModule } from './daily-task/dailytask.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { SalaryDeductionModule } from './salary-deduction/salarydeduction.module
     EmployeeModule,
     EmployeeLoanModule,
     SalaryDeductionModule,
+    DailyTaskModule,
   ],
   controllers: [],
   providers: [],

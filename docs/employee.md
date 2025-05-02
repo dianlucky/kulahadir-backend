@@ -122,6 +122,7 @@ Query params :
 - name : string, contact first name or contact lastname, optional
 - phone : string, contact phone, optional
 - level_id : number, account level_id, optional
+- level_name :  string, account.level.name., optional
 
 Response Body :
 

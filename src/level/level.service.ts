@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable, Logger } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { PrismaService } from '../common/prisma.service';
 import { ValidationService } from '../common/validation.service';
-import { Account, Level } from 'generated/prisma';
+import { Account, Level } from '@prisma/client';
 import {
   CreateLevelRequest,
   LevelResponse,
@@ -14,7 +14,6 @@ import { LevelValidation } from './level.validation';
 export class LevelService {
   constructor(
     @Inject(WINSTON_MODULE_PROVIDER)
-    private logger: Logger,
     private prismaService: PrismaService,
     private validationService: ValidationService,
   ) {}

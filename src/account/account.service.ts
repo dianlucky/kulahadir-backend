@@ -1,4 +1,9 @@
-import { HttpException, Inject, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import {
   AccountResponse,
   AccountType,
@@ -13,7 +18,7 @@ import { PrismaService } from '../common/prisma.service';
 import { AccountValidation } from './account.validation';
 import * as bcrypt from 'bcrypt';
 import { v4 as UUID } from 'uuid';
-import { Account } from 'generated/prisma';
+import { Account, Level } from '@prisma/client';
 
 @Injectable()
 export class AccountService {
@@ -44,6 +49,9 @@ export class AccountService {
 
     const account = await this.prismaService.account.create({
       data: validatedData,
+      include: {
+        level: true,
+      },
     });
 
     return {
@@ -57,16 +65,25 @@ export class AccountService {
       where: {
         id: accountId,
       },
+      include: {
+        level: true,
+      },
     });
 
     return result;
   }
 
-  toAccountResponse(account: Account): AccountResponse {
+  toAccountResponse(account: Account & { level?: Level }): AccountResponse {
     return {
       id: account.id,
       username: account.username,
       level_id: account.level_id,
+      level: account.level
+        ? {
+            id: account.level.id,
+            name: account.level.name,
+          }
+        : undefined,
     };
   }
 
@@ -80,6 +97,9 @@ export class AccountService {
     const user = (await this.prismaService.account.findFirst({
       where: {
         username: validatedData.username,
+      },
+      include: {
+        level: true,
       },
     })) as AccountType;
 
@@ -99,6 +119,9 @@ export class AccountService {
       where: {
         id: user.id,
       },
+      include: {
+        level: true,
+      },
       data: {
         token: UUID(),
       },
@@ -112,18 +135,31 @@ export class AccountService {
   }
 
   async get(account: Account): Promise<AccountResponse> {
-     this.logger.info(`Get account that used to login ${JSON.stringify(account.id)}`);
-    return {
-      username: account.username,
-      level_id: account.level_id,
-    };
+    this.logger.info(
+      `Get account that used to login ${JSON.stringify(account.id)}`,
+    );
+    const result = await this.prismaService.account.findFirst({
+      where: {
+        id: account.id,
+      },
+      include: {
+        level: true,
+      },
+    });
+
+    if (!result) {
+      throw new NotFoundException(`Account with ID ${account.id} not found`);
+    }
+    return this.toAccountResponse(result);
   }
 
   async update(
     account: Account,
     request: UpdateAccountRequest,
   ): Promise<AccountResponse> {
-     this.logger.info(`Update Account that used to login ${JSON.stringify(request)}`);
+    this.logger.info(
+      `Update Account that used to login ${JSON.stringify(request)}`,
+    );
     const validatedData = await this.validationService.validate(
       AccountValidation.UPDATE,
       request,
@@ -139,6 +175,9 @@ export class AccountService {
       where: {
         id: account.id,
       },
+      include: {
+        level: true,
+      },
       data: validatedData,
     });
 
@@ -146,10 +185,13 @@ export class AccountService {
   }
 
   async logout(account: Account): Promise<AccountResponse> {
-     this.logger.info(`Logout ${JSON.stringify(account.username)}`);
+    this.logger.info(`Logout ${JSON.stringify(account.username)}`);
     const result = await this.prismaService.account.update({
       where: {
         id: account.id,
+      },
+      include: {
+        level: true,
       },
       data: {
         token: null,

@@ -40,7 +40,7 @@ model Employee {
   name              String            @db.VarChar(200)
   birth_date        DateTime          @db.DateTime()
   phone             String            @db.VarChar(20)
-  account_id        Int              @unique
+  account_id        Int             
 
   account           Account           @relation(fields: [account_id], references: [id])
   schedules         Schedule[]

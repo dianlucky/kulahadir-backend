@@ -16,7 +16,7 @@ import {
   UpdateAccountRequest,
 } from '../model/account.model';
 import { Auth } from '../common/auth.decorator';
-import { Account } from 'generated/prisma';
+import { Account } from '@prisma/client';
 
 @Controller('/api/accounts')
 export class AccountController {

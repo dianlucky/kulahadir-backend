@@ -9,7 +9,7 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
-import { Account } from 'generated/prisma';
+import { Account } from '@prisma/client';
 import { Auth } from 'src/common/auth.decorator';
 import {
   CreateLevelRequest,

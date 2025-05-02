@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpException,
@@ -72,6 +73,19 @@ export class EmployeeLoanController {
     const result = await this.employeeLoanService.update(loanId, request);
     return {
       data: result,
+    };
+  }
+
+  @Delete('/:employeeloanId')
+  @HttpCode(200)
+  async remove(
+    @Auth() account: Account,
+    @Param('employeeloanId', ParseIntPipe) loanId: number,
+  ): Promise<WebResponse<boolean>> {
+    await this.employeeLoanService.remove(loanId);
+
+    return {
+      data: true,
     };
   }
 }

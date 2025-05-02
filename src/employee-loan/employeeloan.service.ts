@@ -152,4 +152,19 @@ export class EmployeeLoanService {
 
     return this.toEmployeeLoanResponse(result);
   }
+
+  async remove(loanId: number): Promise<EmployeeLoanResponse> {
+    await this.checkEmployeeLoanMustExists(loanId);
+
+    const result = await this.prismaService.employeeLoan.delete({
+      where: {
+        id: loanId,
+      },
+      include: {
+        employee: true,
+      },
+    });
+
+    return this.toEmployeeLoanResponse(result);
+  }
 }

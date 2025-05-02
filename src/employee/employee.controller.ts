@@ -44,7 +44,7 @@ export class EmployeeController {
   @Get('/current')
   @HttpCode(200)
   async get(@Auth() account: Account): Promise<WebResponse<EmployeeResponse>> {
-    const result = await this.employeeService.get(account);
+    const result = await this.employeeService.get(account.id);
     return {
       data: result,
     };

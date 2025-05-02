@@ -8,5 +8,6 @@ import { PrismaService } from '../common/prisma.service';
   imports: [AccountModule],
   providers: [EmployeeService],
   controllers: [EmployeeController],
+  exports: [EmployeeService],
 })
 export class EmployeeModule {}

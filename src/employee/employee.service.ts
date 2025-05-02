@@ -46,7 +46,7 @@ export class EmployeeService {
     };
   }
 
-  async checkEmployeeMustExists(employeeId: number) {
+  async checkEmployeeMustExists(employeeId: number | undefined) {
     const result = await this.prismaService.employee.findFirst({
       where: {
         id: employeeId,
@@ -93,10 +93,10 @@ export class EmployeeService {
     return this.toEmployeeResponse(employee);
   }
 
-  async get(account: Account): Promise<EmployeeResponse> {
+  async get(accountId: number): Promise<EmployeeResponse> {
     const employee = await this.prismaService.employee.findFirst({
       where: {
-        account_id: account.id,
+        account_id: accountId,
       },
       include: {
         account: {

@@ -8,7 +8,9 @@ import {
   EmployeeLoanResponse,
   UpdateEmployeeLoanRequest,
 } from '../model/employeeloan.model';
-import { EmployeeService } from 'src/employee/employee.service';
+import { EmployeeService } from '../employee/employee.service';
+import { SalaryDeductionService } from '../salary-deduction/salarydeduction.service';
+import { format } from 'date-fns';
 
 @Injectable()
 export class EmployeeLoanService {
@@ -16,6 +18,7 @@ export class EmployeeLoanService {
     private prismaService: PrismaService,
     private validationService: ValidationService,
     private employeeService: EmployeeService,
+    private salaryDeductionService: SalaryDeductionService,
   ) {}
 
   toEmployeeLoanResponse(
@@ -64,12 +67,19 @@ export class EmployeeLoanService {
       request,
     );
     await this.employeeService.checkEmployeeMustExists(request.employee_id);
+
     const result = await this.prismaService.employeeLoan.create({
-      data: validatedData,
+      data: {
+        ...validatedData,
+        date: new Date(validatedData.date),
+      },
       include: {
         employee: true,
       },
     });
+
+    if (result) {
+    }
 
     return this.toEmployeeLoanResponse(result);
   }
@@ -138,7 +148,7 @@ export class EmployeeLoanService {
         EmployeeLoanValidation.UPDATE,
         request,
       );
-    await this.checkEmployeeLoanMustExists(loanId);
+    const loan = await this.checkEmployeeLoanMustExists(loanId);
 
     const result = await this.prismaService.employeeLoan.update({
       where: {
@@ -149,6 +159,17 @@ export class EmployeeLoanService {
       },
       data: validatedData,
     });
+
+    if (result.status === 'Accepted') {
+
+      const salaryDeductionData = {
+        amount: loan.amount,
+        date: loan.date,
+        employee_id: loan.employee_id,
+      };
+      console.log(`DARI LOAN SERVICE : ${salaryDeductionData.date}`);
+      await this.salaryDeductionService.create(salaryDeductionData);
+    }
 
     return this.toEmployeeLoanResponse(result);
   }

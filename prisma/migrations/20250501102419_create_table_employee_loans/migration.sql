@@ -11,7 +11,7 @@ ALTER TABLE `employees` MODIFY `birth_date` DATETIME NOT NULL;
 CREATE TABLE `employee_loans` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `amount` INTEGER NOT NULL,
-    `date` TIMESTAMP NOT NULL,
+    `date` DATETIME NOT NULL,
     `status` VARCHAR(100) NOT NULL,
     `employee_id` INTEGER NOT NULL,
 

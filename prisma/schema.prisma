@@ -46,13 +46,14 @@ model Employee {
   schedules         Schedule[]
   employee_loans    EmployeeLoan[]
   salary_deductions SalaryDeduction[]
+  dailytaskemployee DailyTaskEmployee[]
 
   @@map("employees")
 }
 
 model Schedule {
   id                Int         @id @default(autoincrement())
-  date              String      @db.VarChar(100)
+  date              DateTime    @db.Date()
   status            String      @db.VarChar(25)
   attendance_status String      @db.VarChar(25)
   employee_id       Int
@@ -69,7 +70,7 @@ model Schedule {
 model EmployeeLoan {
   id             Int       @id @default(autoincrement())
   amount         Int       @db.Int()
-  date           DateTime  @db.Timestamp()
+  date           DateTime  @db.Date()
   status         String    @db.VarChar(100)
   employee_id    Int
 
@@ -81,7 +82,7 @@ model EmployeeLoan {
 model SalaryDeduction {
   id             Int       @id @default(autoincrement())
   amount         Int       @db.Int()
-  date           DateTime  @db.Timestamp()
+  date           DateTime  @db.Date()
   employee_id    Int
 
   employee       Employee  @relation(fields: [employee_id], references: [id])
@@ -123,3 +124,24 @@ model PaidLeave {
 
   @@map("paid_leaves")
 }
+
+model DailyTask {
+  id   Int    @id @default(autoincrement())
+  task String @db.Text()
+
+  dailytaskemployee DailyTaskEmployee[]
+  @@map("daily_tasks")
+}
+
+model DailyTaskEmployee {
+  id         Int    @id @default(autoincrement())
+  day        String @db.VarChar(100)
+  task_id    Int
+  employee_id Int
+
+  dailytask    DailyTask  @relation(fields: [task_id], references: [id])
+  employee     Employee   @relation(fields: [employee_id], references: [id])
+  @@map("daily_task_employees")
+}
+
+

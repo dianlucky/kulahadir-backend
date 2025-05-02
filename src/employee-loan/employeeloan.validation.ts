@@ -9,6 +9,6 @@ export class EmployeeLoanValidation {
   });
 
   static readonly UPDATE: ZodType = z.object({
-    status: z.string().min(1).max(100),
+    status: z.string().min(1),
   });
 }

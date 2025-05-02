@@ -2,7 +2,7 @@
 CREATE TABLE `employees` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `name` VARCHAR(200) NOT NULL,
-    `birth_date` DATETIME NOT NULL,
+    `birth_date` DATE NOT NULL,
     `phone` VARCHAR(20) NOT NULL,
     `account_id` INTEGER NOT NULL,
 

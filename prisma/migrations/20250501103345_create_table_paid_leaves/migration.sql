@@ -13,13 +13,13 @@ ALTER TABLE `attendances` MODIFY `check_in` DATETIME NOT NULL,
     MODIFY `check_out` DATETIME NOT NULL;
 
 -- AlterTable
-ALTER TABLE `employee_loans` MODIFY `date` TIMESTAMP NOT NULL;
+ALTER TABLE `employee_loans` MODIFY `date` DATETIME NOT NULL;
 
 -- AlterTable
-ALTER TABLE `employees` MODIFY `birth_date` DATETIME NOT NULL;
+ALTER TABLE `employees` MODIFY `birth_date` DATE NOT NULL;
 
 -- AlterTable
-ALTER TABLE `salary_deductions` MODIFY `date` TIMESTAMP NOT NULL;
+ALTER TABLE `salary_deductions` MODIFY `date` DATE NOT NULL;
 
 -- CreateTable
 CREATE TABLE `paid_leaves` (

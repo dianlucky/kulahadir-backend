@@ -55,10 +55,28 @@ export class SalaryDeductionService {
     return result;
   }
 
+  async checkSalaryDeductionMonthly(employee_id: number, date: string) {
+    const yearMonth = new Date(`${date}-01`);
+    const result = await this.prismaService.salaryDeduction.findFirst({
+      where: {
+        date: {
+          gte: yearMonth,
+          lt: new Date(yearMonth.getFullYear(), yearMonth.getMonth() + 1, 1),
+        },
+        employee_id: employee_id,
+      },
+      include: {
+        employee: true,
+      },
+    });
+
+    return result;
+  }
+
   async create(
     request: CreateSalaryDeductionRequest,
   ): Promise<SalaryDeductionResponse> {
-    console.log(request);
+    console.log(`Dari deduction service: ${request.amount}`);
     const validatedData = await this.validationService.validate(
       SalaryDeductionValidation.CREATE,
       request,
@@ -66,7 +84,10 @@ export class SalaryDeductionService {
 
     await this.employeeService.checkEmployeeMustExists(request.employee_id);
     const result = await this.prismaService.salaryDeduction.create({
-      data: validatedData,
+      data: {
+        ...validatedData,
+        date: new Date(validatedData.date),
+      },
       include: {
         employee: true,
       },
@@ -85,15 +106,12 @@ export class SalaryDeductionService {
     deductionId: number,
     request: UpdateSalaryDeductionRequest,
   ): Promise<SalaryDeductionResponse> {
-    const oldDeduction = await this.checkDeductionMustExists(deductionId);
-    console.log(oldDeduction.amount);
+    await this.checkDeductionMustExists(deductionId);
 
     const validatedData = await this.validationService.validate(
       SalaryDeductionValidation.UPDATE,
       request,
     );
-
-    validatedData.amount = oldDeduction.amount + validatedData.amount;
 
     const result = await this.prismaService.salaryDeduction.update({
       where: {

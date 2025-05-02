@@ -10,7 +10,7 @@ ALTER TABLE `employees` MODIFY `birth_date` DATETIME NOT NULL;
 -- CreateTable
 CREATE TABLE `schedules` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `date` VARCHAR(100) NOT NULL,
+    `date` DATE NOT NULL,
     `status` VARCHAR(25) NOT NULL,
     `attendance_status` VARCHAR(25) NOT NULL,
     `employee_id` INTEGER NOT NULL,

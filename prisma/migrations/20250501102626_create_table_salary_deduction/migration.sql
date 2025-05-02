@@ -15,7 +15,7 @@ ALTER TABLE `employees` MODIFY `birth_date` DATETIME NOT NULL;
 CREATE TABLE `salary_deductions` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `amount` INTEGER NOT NULL,
-    `date` TIMESTAMP NOT NULL,
+    `date` DATE NOT NULL,
     `employee_id` INTEGER NOT NULL,
 
     PRIMARY KEY (`id`)

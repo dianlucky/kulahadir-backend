@@ -3,7 +3,7 @@ import { z, ZodType } from 'zod';
 export class SalaryDeductionValidation {
   static readonly CREATE: ZodType = z.object({
     amount: z.number().min(1).positive(),
-    date: z.string().min(1),
+    date: z.date(),
     employee_id: z.number().positive(),
   });
 

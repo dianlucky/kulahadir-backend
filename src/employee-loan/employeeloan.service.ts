@@ -10,7 +10,6 @@ import {
 } from '../model/employeeloan.model';
 import { EmployeeService } from '../employee/employee.service';
 import { SalaryDeductionService } from '../salary-deduction/salarydeduction.service';
-import { format } from 'date-fns';
 
 @Injectable()
 export class EmployeeLoanService {

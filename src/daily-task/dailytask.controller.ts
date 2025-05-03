@@ -15,7 +15,7 @@ import { DailyTaskRequest, DailyTaskResponse } from '../model/dailytask.model';
 import { Auth } from '../common/auth.decorator';
 import { Account } from '@prisma/client';
 
-@Controller('/api/daily-task')
+@Controller('/api/daily-tasks')
 export class DailyTaskController {
   constructor(private dailyTaskService: DailyTaskService) {}
 

@@ -17,6 +17,7 @@ export class CreateDailyTaskEmployeeRequest {
 }
 
 export class UpdateDailyTaskEmployeeRequest {
+  id: number;
   day: string;
   task_id: number;
   employee_id: number;

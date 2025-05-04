@@ -6,6 +6,7 @@ import { EmployeeService } from '../employee/employee.service';
 import {
   CreateDailyTaskEmployeeRequest,
   DailyTaskEmployeeResponse,
+  UpdateDailyTaskEmployeeRequest,
 } from 'src/model/dailytaskemployee.model';
 import { DailyTask, DailyTaskEmployee, Employee } from '@prisma/client';
 import { DailyTaskEmployeeValidation } from './dailytaskemployee.validation';
@@ -86,4 +87,35 @@ export class DailyTaskEmployeeService {
     return this.toDailyTaskEmployeeResponse(result);
   }
 
+  async update(
+    taskEmployeeId: number,
+    request: UpdateDailyTaskEmployeeRequest,
+  ): Promise<DailyTaskEmployeeResponse> {
+    const validatedData = await this.validationService.validate(
+      DailyTaskEmployeeValidation.UPDATE,
+      request,
+    );
+    await this.checkTaskEmployeeMustExists(taskEmployeeId);
+
+    const result = await this.prismaService.dailyTaskEmployee.update({
+      where: {
+        id: taskEmployeeId,
+      },
+      data: validatedData,
+    });
+
+    return this.toDailyTaskEmployeeResponse(result);
+  }
+
+  async remove(taskEmployeeId: number): Promise<DailyTaskEmployeeResponse> {
+    await this.checkTaskEmployeeMustExists(taskEmployeeId);
+
+    const result = await this.prismaService.dailyTaskEmployee.delete({
+      where: {
+        id: taskEmployeeId,
+      },
+    });
+
+    return this.toDailyTaskEmployeeResponse(result);
+  }
 }

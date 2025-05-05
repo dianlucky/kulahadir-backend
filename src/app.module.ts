@@ -9,6 +9,7 @@ import { DailyTaskModule } from './daily-task/dailytask.module';
 import { DailyTaskEmployeeModule } from './daily-task-employee/dailytaskemployee.module';
 import { ScheduleModule } from './schedule/schedule.module';
 import { AttendanceModule } from './attendance/attendance.module';
+import { LeaveModule } from './leave/leave.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { AttendanceModule } from './attendance/attendance.module';
     DailyTaskEmployeeModule,
     ScheduleModule,
     AttendanceModule,
+    LeaveModule,
   ],
   controllers: [],
   providers: [],

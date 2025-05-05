@@ -91,6 +91,9 @@ export class AttendanceService {
     );
 
     await this.checkAttendanceMustExist(validatedData.id);
+    await this.scheduleService.checkScheduleMustExists(
+      validatedData.schedule_id,
+    );
 
     const result = await this.prismaService.attendance.update({
       where: {
@@ -105,6 +108,7 @@ export class AttendanceService {
       },
       data: validatedData,
     });
+
 
     return this.toAttendanceResponse(result);
   }

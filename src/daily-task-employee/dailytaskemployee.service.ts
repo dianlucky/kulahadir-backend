@@ -75,6 +75,10 @@ export class DailyTaskEmployeeService {
       request,
     );
 
+    await this.dailyTaskService.checkTaskIsExists(validatedData.task_id);
+    await this.employeeService.checkEmployeeMustExists(
+      validatedData.employee_id,
+    );
     const result = await this.prismaService.dailyTaskEmployee.create({
       data: validatedData,
     });
@@ -94,6 +98,10 @@ export class DailyTaskEmployeeService {
     const validatedData = await this.validationService.validate(
       DailyTaskEmployeeValidation.UPDATE,
       request,
+    );
+    await this.dailyTaskService.checkTaskIsExists(validatedData.task_id);
+    await this.employeeService.checkEmployeeMustExists(
+      validatedData.employee_id,
     );
     await this.checkTaskEmployeeMustExists(taskEmployeeId);
 

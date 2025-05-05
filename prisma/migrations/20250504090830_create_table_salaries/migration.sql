@@ -27,3 +27,5 @@ CREATE TABLE `salaries` (
 
 -- AddForeignKey
 ALTER TABLE `salaries` ADD CONSTRAINT `salaries_employee_id_fkey` FOREIGN KEY (`employee_id`) REFERENCES `employees`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE `attendances` MODIFY `check_out` DATETIME NULL, MODIFY `status` VARCHAR(100) NULL;

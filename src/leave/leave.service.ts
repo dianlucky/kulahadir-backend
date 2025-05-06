@@ -52,6 +52,13 @@ export class LeaveService {
       where: {
         id: leaveId,
       },
+      include: {
+        schedule: {
+          include: {
+            employee: true,
+          },
+        },
+      },
     });
 
     if (!result) {
@@ -72,6 +79,13 @@ export class LeaveService {
 
     const result = await this.prismaService.leave.create({
       data: validatedData,
+      include: {
+        schedule: {
+          include: {
+            employee: true,
+          },
+        },
+      },
     });
 
     return this.toLeaveResponse(result);
@@ -116,6 +130,13 @@ export class LeaveService {
     const result = await this.prismaService.leave.delete({
       where: {
         id: leaveId,
+      },
+      include: {
+        schedule: {
+          include: {
+            employee: true,
+          },
+        },
       },
     });
     return this.toLeaveResponse(result);

@@ -98,6 +98,7 @@ model Attendance {
   status      String?    @db.VarChar(100)
   schedule_id Int
 
+
   schedule    Schedule  @relation(fields: [schedule_id], references: [id])
 
   @@map("attendances")

@@ -11,6 +11,7 @@ import { ScheduleModule } from './schedule/schedule.module';
 import { AttendanceModule } from './attendance/attendance.module';
 import { LeaveModule } from './leave/leave.module';
 import { PaidLeaveModule } from './paid-leave/paidleave.module';
+import { SalaryModule } from './salary/salary.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { PaidLeaveModule } from './paid-leave/paidleave.module';
     AttendanceModule,
     LeaveModule,
     PaidLeaveModule,
+    SalaryModule,
   ],
   controllers: [],
   providers: [],

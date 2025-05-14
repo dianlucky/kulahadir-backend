@@ -50,6 +50,17 @@ export class EmployeeController {
     };
   }
 
+  @Get()
+  @HttpCode(200)
+  async getAll(
+    @Auth() account: Account,
+  ): Promise<WebResponse<EmployeeResponse[]>> {
+    const result = await this.employeeService.getAll();
+    return {
+      data: result,
+    };
+  }
+
   @Get('')
   @HttpCode(200)
   async search(

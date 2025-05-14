@@ -134,6 +134,33 @@ export class AccountService {
     };
   }
 
+  async getAllAccount(): Promise<AccountResponse[]> {
+    this.logger.info(`Getting all account that exists in database`);
+    const results = await this.prismaService.account.findMany({
+      include: {
+        level: true,
+      },
+    });
+    return results.map((result) => this.toAccountResponse(result));
+  }
+
+  async getById(accountId: number): Promise<AccountResponse> {
+    const result = await this.prismaService.account.findFirst({
+      where: {
+        id: accountId,
+      },
+      include: {
+        level: true,
+      },
+    });
+
+    if (!result) {
+      throw new HttpException('Account is not found', 404);
+    }
+
+    return this.toAccountResponse(result);
+  }
+
   async get(account: Account): Promise<AccountResponse> {
     this.logger.info(
       `Get account that used to login ${JSON.stringify(account.id)}`,
@@ -165,12 +192,15 @@ export class AccountService {
       request,
     );
 
+    const oldAccount = await this.checkAccountMustExists(account.id);
+
     if (request.password) {
       validatedData.password = validatedData.password = await bcrypt.hash(
         validatedData.password,
         10,
       );
-    }
+    } 
+    
     const updatedAccount = await this.prismaService.account.update({
       where: {
         id: account.id,
@@ -182,6 +212,48 @@ export class AccountService {
     });
 
     return this.toAccountResponse(updatedAccount);
+  }
+
+  async updateById(
+    accountId: number,
+    request: UpdateAccountRequest,
+  ): Promise<AccountResponse> {
+    const validatedData = await this.validationService.validate(
+      AccountValidation.UPDATE,
+      request,
+    );
+
+    const oldAccount = await this.checkAccountMustExists(accountId);
+
+    if (request.password) {
+      validatedData.password = validatedData.password = await bcrypt.hash(
+        validatedData.password,
+        10,
+      );
+    }
+
+    const result = await this.prismaService.account.update({
+      where: {
+        id: accountId,
+      },
+      include: {
+        level: true,
+      },
+      data: validatedData,
+    });
+
+    return this.toAccountResponse(result);
+  }
+
+  async remove(accountId: number): Promise<AccountResponse> {
+    await this.checkAccountMustExists(accountId);
+    const result = await this.prismaService.account.delete({
+      where: {
+        id: accountId,
+      },
+    });
+
+    return this.toAccountResponse(result);
   }
 
   async logout(account: Account): Promise<AccountResponse> {

@@ -10,11 +10,16 @@ export class ScheduleResponse {
   employee?: EmployeeResponse;
 }
 
+// export class CreateScheduleRequest {
+//   date: Date;
+//   status: string;
+//   attendance_status: string;
+//   employee_id: number;
+// }
+
 export class CreateScheduleRequest {
-  date: Date;
-  status: string;
-  attendance_status: string;
-  employee_id: number;
+  month: string; // Format "MM-YYYY"
+  make_schedule: boolean;
 }
 
 export class UpdateScheduleRequest {

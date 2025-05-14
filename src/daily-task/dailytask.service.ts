@@ -56,6 +56,11 @@ export class DailyTaskService {
     return this.toDailyTaskResponse(result);
   }
 
+  async getAll(): Promise<DailyTaskResponse[]> {
+    const results = await this.prismaService.dailyTask.findMany();
+    return results.map((result) => this.toDailyTaskResponse(result));
+  }
+
   async get(taskId: number): Promise<DailyTaskResponse> {
     const result = await this.checkTaskIsExists(taskId);
     return this.toDailyTaskResponse(result);

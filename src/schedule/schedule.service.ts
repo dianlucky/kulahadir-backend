@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { ValidationService } from '../common/validation.service';
 import { EmployeeService } from '../employee/employee.service';
@@ -56,21 +56,81 @@ export class ScheduleService {
     return result;
   }
 
-  async create(request: CreateScheduleRequest): Promise<ScheduleResponse> {
-    const validatedData = await this.validationService.validate(
-      ScheduleValidation.CREATE,
-      request,
-    );
+  // async create(request: CreateScheduleRequest): Promise<ScheduleResponse> {
+  //   const validatedData = await this.validationService.validate(
+  //     ScheduleValidation.CREATE,
+  //     request,
+  //   );
 
-    await this.employeeService.checkEmployeeMustExists(
-      validatedData.employee_id,
-    );
+  //   await this.employeeService.checkEmployeeMustExists(
+  //     validatedData.employee_id,
+  //   );
 
-    const result = await this.prismaService.schedule.create({
-      data: validatedData,
+  //   const result = await this.prismaService.schedule.create({
+  //     data: validatedData,
+  //   });
+
+  //   return this.toScheduleResponse(result);
+  // }
+
+  async create(request: CreateScheduleRequest): Promise<ScheduleResponse[]> {
+    const { month, make_schedule } = request;
+
+    if (!make_schedule) {
+      throw new BadRequestException('make_schedule must be true');
+    }
+
+    // Parsing dan validasi bulan
+    const [monthStr, yearStr] = month.split('-');
+    const monthNum = parseInt(monthStr, 10);
+    const yearNum = parseInt(yearStr, 10);
+
+    if (
+      isNaN(monthNum) ||
+      isNaN(yearNum) ||
+      monthNum < 1 ||
+      monthNum > 12 ||
+      yearNum < 1000
+    ) {
+      throw new BadRequestException('Invalid month format, expected MM-YYYY');
+    }
+
+    // Ambil semua pegawai
+    const employees = await this.prismaService.account.findMany({
+      where: {
+        level: {
+          name: 'pegawai',
+        },
+      },
+      include: {
+        level: true,
+      },
     });
 
-    return this.toScheduleResponse(result);
+    // Generate tanggal dari 1 sampai akhir bulan
+    const allDates: Date[] = [];
+    const totalDays = new Date(yearNum, monthNum, 0).getDate(); // jumlah hari dalam bulan
+    for (let day = 2; day <= totalDays + 1; day++) {
+      allDates.push(new Date(yearNum, monthNum - 1, day)); // month - 1 karena JS 0-based
+    }
+
+    const createdSchedules: Schedule[] = [];
+
+    for (const employee of employees) {
+      for (const date of allDates) {
+        const schedule = await this.prismaService.schedule.create({
+          data: {
+            date: date,
+            status: 'on',
+            attendance_status: '!check-in',
+            employee_id: employee.id,
+          },
+        });
+        createdSchedules.push(schedule);
+      }
+    }
+
+    return createdSchedules.map(this.toScheduleResponse);
   }
 
   async get(scheduleId: number): Promise<ScheduleResponse> {

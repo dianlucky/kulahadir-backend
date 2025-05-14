@@ -93,6 +93,23 @@ export class EmployeeService {
     return this.toEmployeeResponse(employee);
   }
 
+  async getAll(): Promise<EmployeeResponse[]> {
+    const results = await this.prismaService.employee.findMany({
+      include: {
+        account: {
+          include: {
+            level: true,
+          },
+        },
+      },
+    });
+    if (!results) {
+      throw new HttpException('Employee is not exists', 404);
+    }
+
+    return results.map((result) => this.toEmployeeResponse(result));
+  }
+
   async get(accountId: number): Promise<EmployeeResponse> {
     const employee = await this.prismaService.employee.findFirst({
       where: {

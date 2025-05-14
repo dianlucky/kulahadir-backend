@@ -28,11 +28,9 @@ export class ScheduleController {
   async create(
     @Auth() account: Account,
     @Body() request: CreateScheduleRequest,
-  ): Promise<WebResponse<ScheduleResponse>> {
+  ): Promise<WebResponse<ScheduleResponse[]>> {
     const result = await this.scheduleService.create(request);
-    return {
-      data: result,
-    };
+    return { data: result };
   }
 
   @Get('/:scheduleId')

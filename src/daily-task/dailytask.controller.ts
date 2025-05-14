@@ -31,6 +31,17 @@ export class DailyTaskController {
     };
   }
 
+  @Get()
+  @HttpCode(200)
+  async getAll(
+    @Auth() account: Account,
+  ): Promise<WebResponse<DailyTaskResponse[]>> {
+    const result = await this.dailyTaskService.getAll();
+    return {
+      data: result,
+    };
+  }
+
   @Get('/:taskId')
   @HttpCode(200)
   async get(

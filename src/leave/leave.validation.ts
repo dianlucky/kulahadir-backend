@@ -13,4 +13,9 @@ export class LeaveValidation {
     status: z.string().min(1).max(100).optional(),
     schedule_id: z.number().positive(),
   });
+
+  static readonly SEARCH: ZodType = z.object({
+    id: z.number().positive().optional(),
+    status: z.string().optional(),
+  });
 }

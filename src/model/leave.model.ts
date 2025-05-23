@@ -21,3 +21,8 @@ export class UpdateLeaveRequest {
   status?: string;
   schedule_id: number;
 }
+
+export class SearcLeaveRequest {
+  id?: number;
+  status?: string;
+}

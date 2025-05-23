@@ -95,6 +95,19 @@ export class PaidLeaveService {
     return this.toPaidLeaveResponse(result);
   }
 
+  async getAll(): Promise<PaidLeaveResponse[]> {
+    const results = await this.prismaService.paidLeave.findMany({
+      include: {
+        schedule: {
+          include: {
+            employee: true,
+          },
+        },
+      },
+    });
+    return results.map((result) => this.toPaidLeaveResponse(result));
+  }
+
   async update(
     paidLeaveId: number,
     request: UpdatePaidLeaveRequest,

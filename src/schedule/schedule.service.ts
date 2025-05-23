@@ -7,7 +7,7 @@ import {
   ScheduleResponse,
   UpdateScheduleRequest,
 } from '../model/schedule.model';
-import { Employee, Schedule } from '@prisma/client';
+import { Account, Employee, Level, Schedule } from '@prisma/client';
 import { ScheduleValidation } from './schedule.validation';
 
 @Injectable()
@@ -19,7 +19,9 @@ export class ScheduleService {
   ) {}
 
   toScheduleResponse(
-    schedule: Schedule & { employee?: Employee },
+    schedule: Schedule & {
+      employee?: Employee & { account?: Account & { level?: Level } };
+    },
   ): ScheduleResponse {
     return {
       id: schedule.id,
@@ -34,6 +36,19 @@ export class ScheduleService {
             birth_date: schedule.employee.birth_date,
             phone: schedule.employee.phone,
             account_id: schedule.employee.account_id,
+            account: schedule.employee.account
+              ? {
+                  id: schedule.employee.account.id,
+                  username: schedule.employee.account.username,
+                  level_id: schedule.employee.account.level_id,
+                  level: schedule.employee.account.level
+                    ? {
+                        id: schedule.employee.account.level.id,
+                        name: schedule.employee.account.level.name,
+                      }
+                    : undefined,
+                }
+              : undefined,
           }
         : undefined,
     };
@@ -96,14 +111,20 @@ export class ScheduleService {
     }
 
     // Ambil semua pegawai
-    const employees = await this.prismaService.account.findMany({
+    const employees = await this.prismaService.employee.findMany({
       where: {
-        level: {
-          name: 'pegawai',
+        account: {
+          level: {
+            name: 'pegawai',
+          },
         },
       },
       include: {
-        level: true,
+        account: {
+          include: {
+            level: true,
+          },
+        },
       },
     });
 
@@ -133,6 +154,29 @@ export class ScheduleService {
     return createdSchedules.map(this.toScheduleResponse);
   }
 
+  async findByDate(date: Date): Promise<ScheduleResponse[]> {
+    const schedules = await this.prismaService.schedule.findMany({
+      where: {
+        date: {
+          equals: date,
+        },
+      },
+      include: {
+        employee: {
+          include: {
+            account: {
+              include: {
+                level: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return schedules.map(this.toScheduleResponse);
+  }
+
   async get(scheduleId: number): Promise<ScheduleResponse> {
     const result = await this.checkScheduleMustExists(scheduleId);
     return this.toScheduleResponse(result);
@@ -158,6 +202,8 @@ export class ScheduleService {
 
     return this.toScheduleResponse(result);
   }
+
+  
 
   async remove(scheduleId: number): Promise<ScheduleResponse> {
     await this.checkScheduleMustExists(scheduleId);

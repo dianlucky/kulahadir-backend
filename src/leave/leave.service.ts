@@ -5,6 +5,7 @@ import { ValidationService } from 'src/common/validation.service';
 import {
   CreateLeaveRequest,
   LeaveResponse,
+  SearcLeaveRequest,
   UpdateLeaveRequest,
 } from 'src/model/leave.model';
 import { ScheduleService } from 'src/schedule/schedule.service';
@@ -90,6 +91,28 @@ export class LeaveService {
 
     return this.toLeaveResponse(result);
   }
+
+  async getAll(): Promise<LeaveResponse[]> {
+    const results = await this.prismaService.paidLeave.findMany({
+      include: {
+        schedule: {
+          include: {
+            employee: true,
+          },
+        },
+      },
+    });
+    return results.map((result) => this.toLeaveResponse(result));
+  }
+
+  // async search(request: SearcLeaveRequest): Promise<LeaveResponse[]> {
+  //   const validatedData = await this.validationService.validate(
+  //     LeaveValidation.SEARCH,
+  //     request,
+  //   );
+
+  //   const filter
+  // }
 
   async get(leaveId: number): Promise<LeaveResponse> {
     const result = await this.checkLeaveMustExists(leaveId);

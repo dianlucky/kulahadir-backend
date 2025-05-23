@@ -35,6 +35,17 @@ export class PaidLeaveController {
     };
   }
 
+  @Get()
+  @HttpCode(200)
+  async getAll(
+    @Auth() account: Account,
+  ): Promise<WebResponse<PaidLeaveResponse[]>> {
+    const result = await this.paidLeaveService.getAll();
+    return {
+      data: result,
+    };
+  }
+
   @Get('/:paidLeaveId')
   @HttpCode(200)
   async get(

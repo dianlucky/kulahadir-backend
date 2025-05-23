@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { WebResponse } from 'src/model/web.model';
@@ -30,6 +31,15 @@ export class ScheduleController {
     @Body() request: CreateScheduleRequest,
   ): Promise<WebResponse<ScheduleResponse[]>> {
     const result = await this.scheduleService.create(request);
+    return { data: result };
+  }
+
+  @Get()
+  async findByDate(
+    @Auth() account: Account,
+    @Query('date') date: string,
+  ): Promise<WebResponse<ScheduleResponse[]>> {
+    const result = await this.scheduleService.findByDate(new Date(date));
     return { data: result };
   }
 

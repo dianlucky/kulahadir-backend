@@ -35,6 +35,17 @@ export class LeaveController {
     };
   }
 
+  @Get()
+  @HttpCode(200)
+  async getAll(
+    @Auth() account: Account,
+  ): Promise<WebResponse<LeaveResponse[]>> {
+    const result = await this.leaveService.getAll();
+    return {
+      data: result,
+    };
+  }
+
   @Get('/:leaveId')
   @HttpCode(200)
   async get(

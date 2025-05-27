@@ -1,25 +1,22 @@
-import { DailyTaskResponse } from './dailytask.model';
-import { EmployeeResponse } from './employee.model';
+import { TaskEmployeeResponse } from './taskemployee.model';
 
 export class DailyTaskEmployeeResponse {
   id: number;
-  day: string;
-  task_id: number;
-  employee_id: number;
-
-  dailyTask?: DailyTaskResponse;
-  employee?: EmployeeResponse;
+  status: string;
+  date: Date;
+  task_employee_id: number;
+  task_employee?: TaskEmployeeResponse;
 }
 
 export class CreateDailyTaskEmployeeRequest {
-  day: string;
-  task_id: number;
-  employee_id: number;
+  status: string;
+  date: Date;
+  task_employee_id: number;
 }
 
 export class UpdateDailyTaskEmployeeRequest {
   id: number;
-  day: string;
-  task_id: number;
-  employee_id: number;
+  status: string;
+  date?: Date;
+  task_employee_id?: number;
 }

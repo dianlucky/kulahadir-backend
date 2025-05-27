@@ -15,6 +15,7 @@ model Account {
   username  String    @db.VarChar(100)
   password  String?   @db.VarChar(100)
   level     String    @db.VarChar(100)
+  status    String    @db.VarChar(100)
   token     String?   @db.VarChar(100)
 
   employees Employee[]
@@ -28,7 +29,7 @@ model Employee {
   birth_date     DateTime?          @db.DateTime()
   phone          String?            @db.VarChar(20)
   profile_pic    String?           @db.VarChar(200)
-  status         String            @db.VarChar(100)
+
   created_at     DateTime          @db.Timestamp()
   account_id     Int
 
@@ -36,6 +37,7 @@ model Employee {
   schedules      Schedule[]
   cash_advances  CashAdvance[]
   task_employees TaskEmployee[]
+  leave_requests LeaveRequest[]
   notifications  Notification[]
   salary         Salary[]
 
@@ -64,6 +66,7 @@ model CashAdvance {
   date         DateTime  @db.Date()
   reason       String?    @db.Text()
   status       String    @db.VarChar(100)
+  created_at   DateTime  @db.Timestamp()
   employee_id  Int
 
   employee     Employee  @relation(fields: [employee_id], references: [id])
@@ -93,6 +96,9 @@ model LeaveRequest {
   status      String    @db.VarChar(50)
   attachment  String?   @db.VarChar(255)
   created_at  DateTime  @db.Timestamp()
+  employee_id Int
+
+  employee        Employee            @relation(fields: [employee_id], references: [id])
 
   @@map("leave_requests")
 }
@@ -102,6 +108,8 @@ model DailyTask {
   task_code  String  @db.VarChar(10)
   task_name  String  @db.Text()
 
+  taskemployees TaskEmployee[]
+
   @@map("daily_tasks")
 }
 
@@ -109,8 +117,10 @@ model TaskEmployee {
   id              Int                 @id @default(autoincrement())
   day             String              @db.VarChar(20)
   employee_id     Int
+  task_id         Int
 
   employee        Employee            @relation(fields: [employee_id], references: [id])
+  daily_task      DailyTask           @relation(fields: [task_id], references: [id])
   dailytaskemployee DailyTaskEmployee[]
 
   @@map("task_employees")
@@ -119,6 +129,7 @@ model TaskEmployee {
 model DailyTaskEmployee {
   id              Int           @id @default(autoincrement())
   status          String        @db.VarChar(25)
+  date            DateTime      @db.DateTime()
   task_employee_id Int
 
   task_employee   TaskEmployee  @relation(fields: [task_employee_id], references: [id])

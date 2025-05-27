@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { LeaveService } from './leave.service';
 import { LeaveController } from './leave.controller';
-import { ScheduleModule } from 'src/schedule/schedule.module';
+import { EmployeeModule } from 'src/employee/employee.module';
 
 @Module({
-  imports: [ScheduleModule],
+  imports: [EmployeeModule],
   providers: [LeaveService],
   controllers: [LeaveController],
   exports: [LeaveService],

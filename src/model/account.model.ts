@@ -1,17 +1,15 @@
-import { LevelResponse } from './level.model';
-
 export class AccountResponse {
   id?: number;
   username: string;
-  level_id: number;
+  level: string;
   token?: string;
-
-  level?: LevelResponse;
+  status: string;
 }
 export class RegisterAccountRequest {
   username: string;
   password: string;
-  level_id: number;
+  level: string;
+  status: string;
 }
 export class LoginRequest {
   username: string;
@@ -22,8 +20,9 @@ export class AccountType {
   id: number;
   username: string;
   password: string;
-  level_id: number;
+  level: string;
   token?: string;
+  status: string;
 }
 
 export class UpdateAccountRequest {
@@ -31,4 +30,5 @@ export class UpdateAccountRequest {
   username?: string;
   password?: string;
   level_id?: string;
+  status?: string;
 }

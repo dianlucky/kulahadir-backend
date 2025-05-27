@@ -2,7 +2,11 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { DailyTask } from '@prisma/client';
 import { PrismaService } from 'src/common/prisma.service';
 import { ValidationService } from 'src/common/validation.service';
-import { DailyTaskRequest, DailyTaskResponse } from 'src/model/dailytask.model';
+import {
+  CreateDailyTaskRequest,
+  DailyTaskResponse,
+  UpdateDailyTaskRequest,
+} from 'src/model/dailytask.model';
 import { DailyTaskValidation } from './dailytask.validation';
 
 @Injectable()
@@ -15,7 +19,8 @@ export class DailyTaskService {
   toDailyTaskResponse(task: DailyTask): DailyTaskResponse {
     return {
       id: task.id,
-      task: task.task,
+      task_code: task.task_code,
+      task_name: task.task_name,
     };
   }
 
@@ -33,7 +38,7 @@ export class DailyTaskService {
     return result;
   }
 
-  async create(request: DailyTaskRequest): Promise<DailyTaskResponse> {
+  async create(request: CreateDailyTaskRequest): Promise<DailyTaskResponse> {
     const validatedData = await this.validationService.validate(
       DailyTaskValidation.CREATE,
       request,
@@ -41,7 +46,7 @@ export class DailyTaskService {
 
     const totalTaskWithSameTask = await this.prismaService.dailyTask.count({
       where: {
-        task: validatedData.task,
+        task_name: validatedData.task_name,
       },
     });
 
@@ -68,7 +73,7 @@ export class DailyTaskService {
 
   async update(
     taskId: number,
-    request: DailyTaskRequest,
+    request: UpdateDailyTaskRequest,
   ): Promise<DailyTaskResponse> {
     await this.checkTaskIsExists(taskId);
     const validatedData = await this.validationService.validate(

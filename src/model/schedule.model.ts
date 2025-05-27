@@ -5,6 +5,9 @@ export class ScheduleResponse {
   id: number;
   date: Date;
   status: string;
+  shift_code: string;
+  start_time: string;
+  end_time: string;
   attendance_status: string;
   employee_id: number;
   employee?: EmployeeResponse;
@@ -18,7 +21,7 @@ export class ScheduleResponse {
 // }
 
 export class CreateScheduleRequest {
-  month: string; // Format "MM-YYYY"
+  month: string;
   make_schedule: boolean;
 }
 

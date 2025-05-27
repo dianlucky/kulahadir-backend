@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { SalaryService } from './salary.service';
 import { WebResponse } from 'src/model/web.model';
@@ -30,6 +31,22 @@ export class SalaryController {
     @Body() request: CreateSalaryRequest,
   ): Promise<WebResponse<SalaryResponse>> {
     const result = await this.salaryService.create(request);
+    return {
+      data: result,
+    };
+  }
+
+  @Get('/by-month')
+  @HttpCode(200)
+  async getByMonthEmployeeId(
+    @Auth() account: Account,
+    @Query('month') month: string,
+    @Query('employeeId', ParseIntPipe) employeeId: number,
+  ): Promise<WebResponse<SalaryResponse[]>> {
+    const result = await this.salaryService.getByMonthEmployeeId(
+      new Date(month),
+      employeeId,
+    );
     return {
       data: result,
     };

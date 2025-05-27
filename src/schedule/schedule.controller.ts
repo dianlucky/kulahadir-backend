@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   HttpCode,
@@ -34,12 +35,40 @@ export class ScheduleController {
     return { data: result };
   }
 
-  @Get()
-  async findByDate(
+  @Get('/by-date')
+  async getByDate(
     @Auth() account: Account,
     @Query('date') date: string,
   ): Promise<WebResponse<ScheduleResponse[]>> {
-    const result = await this.scheduleService.findByDate(new Date(date));
+    const result = await this.scheduleService.getByDate(new Date(date));
+    return { data: result };
+  }
+
+  @Get('/by-month')
+  async getByMonthEmployeeId(
+    @Auth() account: Account,
+    @Query('month') month: string,
+    @Query('employeeId', ParseIntPipe)
+    employeeId: number,
+  ): Promise<WebResponse<ScheduleResponse[]>> {
+    const result = await this.scheduleService.getByMonthEmployeeId(
+      new Date(month),
+      employeeId,
+    );
+    return { data: result };
+  }
+
+  @Get()
+  async getByDateEmployeeId(
+    @Auth() account: Account,
+    @Query('employeeId', ParseIntPipe)
+    employeeId: number,
+    @Query('date') date: string,
+  ): Promise<WebResponse<ScheduleResponse>> {
+    const result = await this.scheduleService.getByDateEmployeeId(
+      employeeId,
+      new Date(date),
+    );
     return { data: result };
   }
 

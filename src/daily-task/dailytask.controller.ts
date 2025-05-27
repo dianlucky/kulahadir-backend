@@ -11,7 +11,11 @@ import {
 } from '@nestjs/common';
 import { DailyTaskService } from './dailytask.service';
 import { WebResponse } from '../model/web.model';
-import { DailyTaskRequest, DailyTaskResponse } from '../model/dailytask.model';
+import {
+  CreateDailyTaskRequest,
+  DailyTaskResponse,
+  UpdateDailyTaskRequest,
+} from '../model/dailytask.model';
 import { Auth } from '../common/auth.decorator';
 import { Account } from '@prisma/client';
 
@@ -23,7 +27,7 @@ export class DailyTaskController {
   @HttpCode(200)
   async create(
     @Auth() account: Account,
-    @Body() request: DailyTaskRequest,
+    @Body() request: CreateDailyTaskRequest,
   ): Promise<WebResponse<DailyTaskResponse>> {
     const result = await this.dailyTaskService.create(request);
     return {
@@ -59,7 +63,7 @@ export class DailyTaskController {
   async update(
     @Auth() account: Account,
     @Param('taskId', ParseIntPipe) taskId: number,
-    @Body() request: DailyTaskRequest,
+    @Body() request: UpdateDailyTaskRequest,
   ): Promise<WebResponse<DailyTaskResponse>> {
     const result = await this.dailyTaskService.update(taskId, request);
     return {

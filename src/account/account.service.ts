@@ -18,7 +18,7 @@ import { PrismaService } from '../common/prisma.service';
 import { AccountValidation } from './account.validation';
 import * as bcrypt from 'bcrypt';
 import { v4 as UUID } from 'uuid';
-import { Account, Level } from '@prisma/client';
+import { Account } from '@prisma/client';
 
 @Injectable()
 export class AccountService {
@@ -33,6 +33,7 @@ export class AccountService {
     this.logger.info(`Register new account ${JSON.stringify(request)}`);
     const validatedData: RegisterAccountRequest =
       this.validationService.validate(AccountValidation.REGISTER, request);
+
     const totalAccountWithSameUsername = await this.prismaService.account.count(
       {
         where: {
@@ -49,14 +50,12 @@ export class AccountService {
 
     const account = await this.prismaService.account.create({
       data: validatedData,
-      include: {
-        level: true,
-      },
     });
 
     return {
       username: account.username,
-      level_id: account.level_id,
+      level: account.level,
+      status: account.status,
     };
   }
 
@@ -65,25 +64,17 @@ export class AccountService {
       where: {
         id: accountId,
       },
-      include: {
-        level: true,
-      },
     });
 
     return result;
   }
 
-  toAccountResponse(account: Account & { level?: Level }): AccountResponse {
+  toAccountResponse(account: Account): AccountResponse {
     return {
       id: account.id,
       username: account.username,
-      level_id: account.level_id,
-      level: account.level
-        ? {
-            id: account.level.id,
-            name: account.level.name,
-          }
-        : undefined,
+      level: account.level,
+      status: account.status,
     };
   }
 
@@ -97,9 +88,6 @@ export class AccountService {
     const user = (await this.prismaService.account.findFirst({
       where: {
         username: validatedData.username,
-      },
-      include: {
-        level: true,
       },
     })) as AccountType;
 
@@ -119,9 +107,6 @@ export class AccountService {
       where: {
         id: user.id,
       },
-      include: {
-        level: true,
-      },
       data: {
         token: UUID(),
       },
@@ -129,18 +114,15 @@ export class AccountService {
 
     return {
       username: updatedData.username,
-      level_id: updatedData.level_id,
+      level: updatedData.level,
       token: updatedData.token || undefined,
+      status: updatedData.status,
     };
   }
 
   async getAllAccount(): Promise<AccountResponse[]> {
     this.logger.info(`Getting all account that exists in database`);
-    const results = await this.prismaService.account.findMany({
-      include: {
-        level: true,
-      },
-    });
+    const results = await this.prismaService.account.findMany();
     return results.map((result) => this.toAccountResponse(result));
   }
 
@@ -148,9 +130,6 @@ export class AccountService {
     const result = await this.prismaService.account.findFirst({
       where: {
         id: accountId,
-      },
-      include: {
-        level: true,
       },
     });
 
@@ -168,9 +147,6 @@ export class AccountService {
     const result = await this.prismaService.account.findFirst({
       where: {
         id: account.id,
-      },
-      include: {
-        level: true,
       },
     });
 
@@ -199,14 +175,11 @@ export class AccountService {
         validatedData.password,
         10,
       );
-    } 
-    
+    }
+
     const updatedAccount = await this.prismaService.account.update({
       where: {
         id: account.id,
-      },
-      include: {
-        level: true,
       },
       data: validatedData,
     });
@@ -236,9 +209,6 @@ export class AccountService {
       where: {
         id: accountId,
       },
-      include: {
-        level: true,
-      },
       data: validatedData,
     });
 
@@ -262,9 +232,6 @@ export class AccountService {
       where: {
         id: account.id,
       },
-      include: {
-        level: true,
-      },
       data: {
         token: null,
       },
@@ -272,7 +239,8 @@ export class AccountService {
 
     return {
       username: result.username,
-      level_id: result.level_id,
+      level: result.level,
+      status: result.status,
     };
   }
 }

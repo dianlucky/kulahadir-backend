@@ -78,6 +78,18 @@ export class EmployeeController {
     return this.employeeService.search(request);
   }
 
+  @Get('/by-account')
+  @HttpCode(200)
+  async getByAccountId(
+    @Auth() account: Account,
+    @Query('accountId', ParseIntPipe) accountId: number,
+  ): Promise<WebResponse<EmployeeResponse | null>> {
+    const result = await this.employeeService.getByAccountId(accountId);
+    return {
+      data: result,
+    };
+  }
+
   @Patch('/:employeeId')
   @HttpCode(200)
   async update(

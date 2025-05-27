@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable, Logger } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { PrismaService } from '../common/prisma.service';
 import { ValidationService } from '../common/validation.service';
-import { Account, Employee, Level } from '@prisma/client';
+import { Account, Employee } from '@prisma/client';
 import {
   CreateEmployeeRequest,
   EmployeeResponse,
@@ -22,25 +22,22 @@ export class EmployeeService {
   ) {}
 
   toEmployeeResponse(
-    employee: Employee & { account?: Account & { level?: Level } },
+    employee: Employee & { account?: Account },
   ): EmployeeResponse {
     return {
       id: employee.id,
       name: employee.name,
       birth_date: employee.birth_date,
       phone: employee.phone,
+      profile_pic: employee.profile_pic,
       account_id: employee.account_id,
+      created_at: employee.created_at,
       account: employee.account
         ? {
             id: employee.account.id,
             username: employee.account.username,
-            level_id: employee.account.level_id,
-            level: employee.account.level
-              ? {
-                  id: employee.account.level.id,
-                  name: employee.account.level.name,
-                }
-              : undefined,
+            level: employee.account.level,
+            status: employee.account.status,
           }
         : undefined,
     };
@@ -52,11 +49,7 @@ export class EmployeeService {
         id: employeeId,
       },
       include: {
-        account: {
-          include: {
-            level: true,
-          },
-        },
+        account: true,
       },
     });
 
@@ -77,16 +70,18 @@ export class EmployeeService {
       EmployeeValidation.CREATE,
       request,
     );
-    console.log(validatedData);
+
+    if (validatedData.birth_date) {
+      validatedData.birth_date = new Date(validatedData.birth_date);
+    }
 
     const employee = await this.prismaService.employee.create({
-      data: validatedData,
+      data: {
+        ...validatedData,
+        created_at: new Date(),
+      },
       include: {
-        account: {
-          include: {
-            level: true,
-          },
-        },
+        account: true,
       },
     });
 
@@ -96,18 +91,32 @@ export class EmployeeService {
   async getAll(): Promise<EmployeeResponse[]> {
     const results = await this.prismaService.employee.findMany({
       include: {
-        account: {
-          include: {
-            level: true,
-          },
-        },
+        account: true,
       },
     });
+
     if (!results) {
       throw new HttpException('Employee is not exists', 404);
     }
 
     return results.map((result) => this.toEmployeeResponse(result));
+  }
+
+  async getByAccountId(accountId: number): Promise<EmployeeResponse | null> {
+    const result = await this.prismaService.employee.findFirst({
+      where: {
+        account_id: accountId,
+      },
+      include: {
+        account: true,
+      },
+    });
+
+    if (!result) {
+      return null;
+    }
+
+    return this.toEmployeeResponse(result);
   }
 
   async get(accountId: number): Promise<EmployeeResponse> {
@@ -116,11 +125,7 @@ export class EmployeeService {
         account_id: accountId,
       },
       include: {
-        account: {
-          include: {
-            level: true,
-          },
-        },
+        account: true,
       },
     });
 
@@ -180,11 +185,7 @@ export class EmployeeService {
     const employees = await this.prismaService.employee.findMany({
       where: filters.length > 0 ? { OR: filters } : {},
       include: {
-        account: {
-          include: {
-            level: true,
-          },
-        },
+        account: true,
       },
     });
 
@@ -206,11 +207,7 @@ export class EmployeeService {
         id: request.id,
       },
       include: {
-        account: {
-          include: {
-            level: true,
-          },
-        },
+        account: true,
       },
       data: validatedData,
     });
@@ -226,11 +223,7 @@ export class EmployeeService {
         id: employeeId,
       },
       include: {
-        account: {
-          include: {
-            level: true,
-          },
-        },
+        account: true,
       },
     });
 

@@ -3,27 +3,30 @@ import { EmployeeResponse } from './employee.model';
 export class SalaryResponse {
   id: number;
   amount: number;
-  bonus: number;
-  salary_deduction: number;
+  bonus: number | null;
+  salary_deduction: number | null;
+  cash_advance: number | null;
+  note: string | null;
   date: Date;
+  created_at: Date;
   employee_id: number;
 
   employee?: EmployeeResponse;
 }
 
 export class CreateSalaryRequest {
-  amount: number;
-  bonus: number;
-  salary_deduction: number;
-  date: Date;
+  bonus?: number | null;
+  salary_deduction?: number | null;
+  cash_advance?: number | null;
+  note?: string | null;
   employee_id: number;
 }
 
 export class UpdateSalaryRequest {
   id: number;
-  amount: number;
-  bonus: number;
-  salary_deduction: number;
-  date: Date;
-  employee_id: number;
+  bonus?: number | null;
+  salary_deduction?: number | null;
+  cash_advance?: number | null;
+  note?: string | null;
+  employee_id?: number;
 }

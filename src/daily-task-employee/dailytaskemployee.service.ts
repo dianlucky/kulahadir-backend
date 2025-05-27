@@ -1,62 +1,88 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/prisma.service';
 import { ValidationService } from '../common/validation.service';
-import { DailyTaskService } from '../daily-task/dailytask.service';
-import { EmployeeService } from '../employee/employee.service';
 import {
   CreateDailyTaskEmployeeRequest,
   DailyTaskEmployeeResponse,
   UpdateDailyTaskEmployeeRequest,
 } from 'src/model/dailytaskemployee.model';
-import { DailyTask, DailyTaskEmployee, Employee } from '@prisma/client';
+import {
+  DailyTask,
+  DailyTaskEmployee,
+  Employee,
+  TaskEmployee,
+} from '@prisma/client';
 import { DailyTaskEmployeeValidation } from './dailytaskemployee.validation';
+import { TaskEmployeeService } from 'src/task-employee/taskemployee.service';
 
 @Injectable()
 export class DailyTaskEmployeeService {
   constructor(
     private validationService: ValidationService,
     private prismaService: PrismaService,
-    private employeeService: EmployeeService,
-    private dailyTaskService: DailyTaskService,
+    private taskEmployeeService: TaskEmployeeService,
   ) {}
 
   toDailyTaskEmployeeResponse(
     dailyTaskEmployee: DailyTaskEmployee & {
-      employee?: Employee;
-      dailyTask?: DailyTask;
+      task_employee?: TaskEmployee & {
+        daily_task?: DailyTask;
+        employee?: Employee;
+      };
     },
   ): DailyTaskEmployeeResponse {
     return {
       id: dailyTaskEmployee.id,
-      day: dailyTaskEmployee.day,
-      task_id: dailyTaskEmployee.task_id,
-      dailyTask: dailyTaskEmployee.dailyTask
+      status: dailyTaskEmployee.status,
+      date: dailyTaskEmployee.date,
+      task_employee_id: dailyTaskEmployee.task_employee_id,
+      task_employee: dailyTaskEmployee.task_employee
         ? {
-            id: dailyTaskEmployee.dailyTask.id,
-            task: dailyTaskEmployee.dailyTask.task,
-          }
-        : undefined,
-      employee_id: dailyTaskEmployee.employee_id,
-      employee: dailyTaskEmployee.employee
-        ? {
-            id: dailyTaskEmployee.employee.id,
-            name: dailyTaskEmployee.employee.name,
-            birth_date: dailyTaskEmployee.employee.birth_date,
-            phone: dailyTaskEmployee.employee.phone,
-            account_id: dailyTaskEmployee.employee.account_id,
+            id: dailyTaskEmployee.task_employee.id,
+            day: dailyTaskEmployee.task_employee.day,
+            employee_id: dailyTaskEmployee.task_employee.employee_id,
+            task_id: dailyTaskEmployee.task_employee.task_id,
+            task: dailyTaskEmployee.task_employee.daily_task
+              ? {
+                  id: dailyTaskEmployee.task_employee.daily_task.id,
+                  task_code:
+                    dailyTaskEmployee.task_employee.daily_task.task_code,
+                  task_name:
+                    dailyTaskEmployee.task_employee.daily_task.task_name,
+                }
+              : undefined,
+            employee: dailyTaskEmployee.task_employee.employee
+              ? {
+                  id: dailyTaskEmployee.task_employee.employee.id,
+                  name: dailyTaskEmployee.task_employee.employee.name,
+                  phone: dailyTaskEmployee.task_employee.employee.phone,
+                  birth_date:
+                    dailyTaskEmployee.task_employee.employee.birth_date,
+                  profile_pic:
+                    dailyTaskEmployee.task_employee.employee.profile_pic,
+                  created_at:
+                    dailyTaskEmployee.task_employee.employee.created_at,
+                  account_id:
+                    dailyTaskEmployee.task_employee.employee.account_id,
+                }
+              : undefined,
           }
         : undefined,
     };
   }
 
-  async checkTaskEmployeeMustExists(taskEmployeeId: number) {
+  async checkDailyTaskEmployeeMustExists(taskEmployeeId: number) {
     const result = await this.prismaService.dailyTaskEmployee.findFirst({
       where: {
         id: taskEmployeeId,
       },
       include: {
-        employee: true,
-        dailytask: true,
+        task_employee: {
+          include: {
+            employee: true,
+            daily_task: true,
+          },
+        },
       },
     });
 
@@ -75,39 +101,53 @@ export class DailyTaskEmployeeService {
       request,
     );
 
-    await this.dailyTaskService.checkTaskIsExists(validatedData.task_id);
-    await this.employeeService.checkEmployeeMustExists(
-      validatedData.employee_id,
+    await this.taskEmployeeService.checkTaskEmployeeMustExists(
+      validatedData.task_employee_id,
     );
+
     const result = await this.prismaService.dailyTaskEmployee.create({
       data: validatedData,
+      include: {
+        task_employee: {
+          include: {
+            employee: true,
+            daily_task: true,
+          },
+        },
+      },
     });
 
     return this.toDailyTaskEmployeeResponse(result);
   }
 
-  async get(taskEmployeeId: number): Promise<DailyTaskEmployeeResponse> {
-    const result = await this.checkTaskEmployeeMustExists(taskEmployeeId);
+  async get(dailyTaskEmployeeId: number): Promise<DailyTaskEmployeeResponse> {
+    const result =
+      await this.checkDailyTaskEmployeeMustExists(dailyTaskEmployeeId);
     return this.toDailyTaskEmployeeResponse(result);
   }
 
   async update(
-    taskEmployeeId: number,
+    dailyTaskEmployeeId: number,
     request: UpdateDailyTaskEmployeeRequest,
   ): Promise<DailyTaskEmployeeResponse> {
     const validatedData = await this.validationService.validate(
       DailyTaskEmployeeValidation.UPDATE,
       request,
     );
-    await this.dailyTaskService.checkTaskIsExists(validatedData.task_id);
-    await this.employeeService.checkEmployeeMustExists(
-      validatedData.employee_id,
-    );
-    await this.checkTaskEmployeeMustExists(taskEmployeeId);
+
+    await this.checkDailyTaskEmployeeMustExists(dailyTaskEmployeeId);
 
     const result = await this.prismaService.dailyTaskEmployee.update({
       where: {
-        id: taskEmployeeId,
+        id: dailyTaskEmployeeId,
+      },
+      include: {
+        task_employee: {
+          include: {
+            employee: true,
+            daily_task: true,
+          },
+        },
       },
       data: validatedData,
     });
@@ -115,12 +155,22 @@ export class DailyTaskEmployeeService {
     return this.toDailyTaskEmployeeResponse(result);
   }
 
-  async remove(taskEmployeeId: number): Promise<DailyTaskEmployeeResponse> {
-    await this.checkTaskEmployeeMustExists(taskEmployeeId);
+  async remove(
+    dailyTaskEmployeeId: number,
+  ): Promise<DailyTaskEmployeeResponse> {
+    await this.checkDailyTaskEmployeeMustExists(dailyTaskEmployeeId);
 
     const result = await this.prismaService.dailyTaskEmployee.delete({
       where: {
-        id: taskEmployeeId,
+        id: dailyTaskEmployeeId,
+      },
+      include: {
+        task_employee: {
+          include: {
+            employee: true,
+            daily_task: true,
+          },
+        },
       },
     });
 

@@ -15,6 +15,7 @@ export class EmployeeValidation {
       .optional(),
     phone: z.string().min(1).max(100).optional(),
     account_id: z.number().positive().optional(),
+    profile_pic: z.string().max(255).optional(), // file name
   });
 
   static readonly SEARCH: ZodType = z.object({

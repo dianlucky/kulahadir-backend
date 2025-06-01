@@ -7,28 +7,24 @@ export class AttendanceResponse {
   attendance_long: string | null;
   attendance_lat: string | null;
   status?: string;
+  snapshot: string;
   schedule_id: number;
 
   schedule?: ScheduleResponse;
 }
 
-// export class CreateAttendanceRequest {
-//   check_in: Date;
-//   attendance_long: string;
-//   attendanc_lat: string;
-//   schedule_id: number;
-// }
 export class CheckInRequest {
   check_in: Date;
   attendance_long: string;
-  attendanc_lat: string;
+  attendance_lat: string;
+  snapshot: string;
   schedule_id: number;
 }
 
 export class CheckOutRequest {
   id: number;
-  schedule_id: number;
   check_out: Date;
+  schedule_id: number;
 }
 
 export class UpdateAttendanceRequest {

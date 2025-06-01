@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { TaskEmployeeService } from './taskemployee.service';
 import { Auth } from '../common/auth.decorator';
@@ -19,11 +20,13 @@ import {
   UpdateTaskEmployeeRequest,
 } from 'src/model/taskemployee.model';
 import { WebResponse } from 'src/model/web.model';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('/api/task-employees')
 export class TaskEmployeeController {
   constructor(private taskEmployeeService: TaskEmployeeService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(200)
   async create(
@@ -36,6 +39,7 @@ export class TaskEmployeeController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(200)
   async getByDay(
@@ -49,6 +53,7 @@ export class TaskEmployeeController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/:taskEmployeeId')
   @HttpCode(200)
   async get(
@@ -61,6 +66,7 @@ export class TaskEmployeeController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(200)
   async getAll(
@@ -72,6 +78,7 @@ export class TaskEmployeeController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('/:taskEmployeeId')
   @HttpCode(200)
   async update(
@@ -88,6 +95,7 @@ export class TaskEmployeeController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/:taskEmployeeId')
   @HttpCode(200)
   async remove(

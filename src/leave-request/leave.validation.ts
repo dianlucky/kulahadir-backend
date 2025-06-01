@@ -5,16 +5,28 @@ export class LeaveValidation {
     reason: z.string().min(1),
     employee_id: z.number().positive(),
     type: z.string().min(1).max(100),
-    date: z.string().transform((val) => new Date(val)),
+    date: z.preprocess((val) => {
+      if (typeof val === 'string' || val instanceof Date) {
+        return new Date(val);
+      }
+      return val;
+    }, z.date()),
   });
 
   static readonly UPDATE: ZodType = z.object({
-    id: z.number().positive(),
-    reason: z.string().min(1),
-    status: z.string().min(1).max(100),
-    employee_id: z.number().positive(),
-    type: z.string().min(1).max(100),
-    date: z.string().transform((val) => new Date(val)),
+    id: z.number().positive().optional(),
+    reason: z.string().optional(),
+    status: z.string().max(100).optional(),
+    employee_id: z.number().positive().optional(),
+    type: z.string().max(100).optional(),
+    date: z
+      .preprocess((val) => {
+        if (typeof val === 'string' || val instanceof Date) {
+          return new Date(val);
+        }
+        return val;
+      }, z.date())
+      .optional(),
   });
 
   static readonly SEARCH: ZodType = z.object({

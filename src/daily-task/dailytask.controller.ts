@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { DailyTaskService } from './dailytask.service';
 import { WebResponse } from '../model/web.model';
@@ -18,11 +19,13 @@ import {
 } from '../model/dailytask.model';
 import { Auth } from '../common/auth.decorator';
 import { Account } from '@prisma/client';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('/api/daily-tasks')
 export class DailyTaskController {
   constructor(private dailyTaskService: DailyTaskService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(200)
   async create(
@@ -35,6 +38,7 @@ export class DailyTaskController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(200)
   async getAll(
@@ -46,6 +50,7 @@ export class DailyTaskController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/:taskId')
   @HttpCode(200)
   async get(
@@ -58,6 +63,7 @@ export class DailyTaskController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('/:taskId')
   @HttpCode(200)
   async update(
@@ -71,6 +77,7 @@ export class DailyTaskController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/:taskId')
   @HttpCode(200)
   async remove(

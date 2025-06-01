@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -9,6 +10,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { LeaveService } from './leave.service';
 import { WebResponse } from 'src/model/web.model';
@@ -20,11 +22,13 @@ import {
 } from 'src/model/leaverequest.model';
 import { Account } from '@prisma/client';
 import { Auth } from 'src/common/auth.decorator';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('/api/leaves')
 export class LeaveController {
   constructor(private leaveService: LeaveService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(200)
   async create(
@@ -37,6 +41,7 @@ export class LeaveController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/search')
   @HttpCode(200)
   async search(
@@ -56,6 +61,7 @@ export class LeaveController {
     return this.leaveService.search(request);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(200)
   async getAll(
@@ -67,6 +73,7 @@ export class LeaveController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/by-employee')
   @HttpCode(200)
   async getByEmployeeId(
@@ -79,6 +86,7 @@ export class LeaveController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/:leaveId')
   @HttpCode(200)
   async get(
@@ -91,6 +99,7 @@ export class LeaveController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('/:leaveId')
   @HttpCode(200)
   async update(
@@ -105,6 +114,7 @@ export class LeaveController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/:leaveId')
   @HttpCode(200)
   async remove(

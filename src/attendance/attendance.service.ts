@@ -11,7 +11,9 @@ import {
 import { ScheduleService } from 'src/schedule/schedule.service';
 import { AttendanceValidation } from './attendance.validation';
 import { validate } from 'uuid';
-import { endOfMonth, startOfMonth } from 'date-fns';
+import { endOfMonth, format, startOfMonth } from 'date-fns';
+import { NotificationService } from 'src/notification/notification.service';
+import { id } from 'date-fns/locale';
 
 @Injectable()
 export class AttendanceService {
@@ -19,6 +21,7 @@ export class AttendanceService {
     private prismaService: PrismaService,
     private validationService: ValidationService,
     private scheduleService: ScheduleService,
+    private notificationService: NotificationService,
   ) {}
 
   toAttendanceResponse(
@@ -31,6 +34,7 @@ export class AttendanceService {
       status: attendance.status || undefined,
       attendance_long: attendance.attendance_long,
       attendance_lat: attendance.attendance_lat,
+      snapshot: attendance.snapshot,
       schedule_id: attendance.schedule_id,
       schedule: attendance.schedule
         ? {
@@ -72,14 +76,35 @@ export class AttendanceService {
   }
 
   async checkIn(request: CheckInRequest): Promise<AttendanceResponse> {
-    const validatedData = await this.validationService.validate(
-      AttendanceValidation.CHECKOUT,
-      request,
-    );
     await this.scheduleService.checkScheduleMustExists(request.schedule_id);
-    validatedData.status = 'checked_in';
+
+    // 1. Ambil schedule dari DB
+    const schedule = await this.prismaService.schedule.findUnique({
+      where: { id: request.schedule_id },
+    });
+
+    if (!schedule) {
+      throw new Error('Schedule not found');
+    }
+
+    const startTimeStr = schedule.start_time;
+    const today = new Date();
+    const [hours, minutes] = startTimeStr.split(':').map(Number);
+
+    const startTime = new Date(today);
+    startTime.setHours(hours, minutes, 0, 0);
+
+    const checkInTime = new Date(request.check_in);
+
+    const attendanceStatus = checkInTime > startTime ? 'Late' : 'Working';
+
+    const data = {
+      ...request,
+      status: 'Working',
+    };
+
     const result = await this.prismaService.attendance.create({
-      data: validatedData,
+      data,
       include: {
         schedule: {
           include: {
@@ -92,12 +117,23 @@ export class AttendanceService {
     if (result) {
       await this.prismaService.schedule.update({
         where: {
-          id: validatedData.schedule_id,
+          id: request.schedule_id,
         },
         data: {
-          attendance_status: 'working',
+          attendance_status: attendanceStatus,
         },
       });
+    }
+
+    if (result && attendanceStatus == 'Late') {
+      const dataNotification = {
+        employee_id: result.schedule.employee_id,
+        type: 'Absensi',
+        message: `Halo Kulateam, sepertinya Anda terlambat hari ini (Jam check in ${format(result.check_in, 'HH:mm', { locale: id })}). Mohon untuk lebih memperhatikan kedisiplinan, karena hal ini dapat memengaruhi penilaian owner terhadap kinerja Anda`,
+        was_read: false,
+        created_at: new Date(),
+      };
+      await this.notificationService.create(dataNotification);
     }
 
     return this.toAttendanceResponse(result);
@@ -114,6 +150,10 @@ export class AttendanceService {
 
     await this.checkAttendanceMustExist(attendanceId);
 
+    const data = {
+      ...validatedData,
+      status: 'Done',
+    };
     const result = await this.prismaService.attendance.update({
       where: {
         id: attendanceId,
@@ -125,7 +165,7 @@ export class AttendanceService {
           },
         },
       },
-      data: validatedData,
+      data: data,
     });
 
     if (result) {
@@ -134,9 +174,19 @@ export class AttendanceService {
           id: validatedData.schedule_id,
         },
         data: {
-          attendance_status: 'present',
+          attendance_status:
+            result.schedule.attendance_status == 'Late' ? 'Late' : 'Present',
         },
       });
+
+      const dataNotification = {
+        employee_id: result.schedule.employee_id,
+        type: 'Absensi',
+        message: `Terima kasih telah melakukan absensi hari ini. Tetap semangat, dan mohon untuk selalu menjaga kedisiplinan. Silakan beristirahat, dan tetap jaga semangat Anda!`,
+        was_read: false,
+        created_at: new Date(),
+      };
+      await this.notificationService.create(dataNotification);
     }
 
     return this.toAttendanceResponse(result);
@@ -214,6 +264,28 @@ export class AttendanceService {
       return null;
     }
     return this.toAttendanceResponse(result);
+  }
+
+  async getByDateAll(date: Date): Promise<AttendanceResponse[]> {
+    const results = await this.prismaService.attendance.findMany({
+      where: {
+        schedule: {
+          date: date,
+        },
+      },
+      include: {
+        schedule: {
+          include: {
+            employee: true,
+          },
+        },
+      },
+    });
+
+    if (!results) {
+      return [];
+    }
+    return results.map((result) => this.toAttendanceResponse(result));
   }
 
   async get(attendanceId: number): Promise<AttendanceResponse> {

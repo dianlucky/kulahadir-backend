@@ -15,10 +15,12 @@ export class SalaryResponse {
 }
 
 export class CreateSalaryRequest {
-  bonus?: number | null;
-  salary_deduction?: number | null;
-  cash_advance?: number | null;
-  note?: string | null;
+  bonus: number | null;
+  salary_deduction: number | null;
+  cash_advance: number | null;
+  amount: number | null;
+  note: string | null;
+  date: string;
   employee_id: number;
 }
 

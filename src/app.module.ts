@@ -10,10 +10,13 @@ import { LeaveModule } from './leave-request/leave.module';
 import { SalaryModule } from './salary/salary.module';
 import { CashAdvanceModule } from './cash-advance/cashadvance.module';
 import { TaskEmployeeModule } from './task-employee/taskemployee.module';
+import { AuthModule } from './auth/auth.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
     CommonModule,
+    AuthModule,
     AccountModule,
     EmployeeModule,
     DailyTaskModule,
@@ -24,6 +27,7 @@ import { TaskEmployeeModule } from './task-employee/taskemployee.module';
     SalaryModule,
     CashAdvanceModule,
     TaskEmployeeModule,
+    NotificationModule,
   ],
   controllers: [],
   providers: [],

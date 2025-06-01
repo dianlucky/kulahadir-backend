@@ -11,6 +11,7 @@ import {
 } from '../model/employee.model';
 import { AccountService } from '../account/account.service';
 import { EmployeeValidation } from './employee.validation';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class EmployeeService {
@@ -19,6 +20,7 @@ export class EmployeeService {
     private prismaService: PrismaService,
     private validationService: ValidationService,
     private accountService: AccountService,
+    private notificationService: NotificationService,
   ) {}
 
   toEmployeeResponse(
@@ -84,6 +86,17 @@ export class EmployeeService {
         account: true,
       },
     });
+
+    if (employee) {
+      const dataNotification = {
+        employee_id: employee.id,
+        type: 'Akun',
+        message: `Selamat datang di kulateam!`,
+        was_read: false,
+        created_at: new Date(),
+      };
+      await this.notificationService.create(dataNotification);
+    }
 
     return this.toEmployeeResponse(employee);
   }

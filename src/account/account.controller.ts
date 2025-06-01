@@ -8,22 +8,24 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 import { WebResponse } from '../model/web.model';
 import {
   AccountResponse,
-  LoginRequest,
   RegisterAccountRequest,
   UpdateAccountRequest,
 } from '../model/account.model';
 import { Auth } from '../common/auth.decorator';
 import { Account } from '@prisma/client';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('/api/accounts')
 export class AccountController {
   constructor(private accountService: AccountService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(200)
   async register(
@@ -35,17 +37,17 @@ export class AccountController {
     };
   }
 
-  @Post('/login')
-  @HttpCode(200)
-  async login(
-    @Body() request: LoginRequest,
-  ): Promise<WebResponse<AccountResponse>> {
-    const result = await this.accountService.login(request);
-    return {
-      data: result,
-    };
-  }
-
+  // @Post('/login')
+  // @HttpCode(200)
+  // async login(
+  //   @Body() request: LoginRequest,
+  // ): Promise<WebResponse<AccountResponse>> {
+  //   const result = await this.accountService.login(request);
+  //   return {
+  //     data: result,
+  //   };
+  // }
+  @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(200)
   async getAllAccount(
@@ -57,6 +59,7 @@ export class AccountController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/:accountId')
   @HttpCode(200)
   async getById(
@@ -69,6 +72,7 @@ export class AccountController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(200)
   async get(@Auth() account: Account): Promise<WebResponse<AccountResponse>> {
@@ -78,6 +82,7 @@ export class AccountController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('/:accountId')
   @HttpCode(200)
   async updateById(
@@ -92,6 +97,7 @@ export class AccountController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('/current')
   @HttpCode(200)
   async update(
@@ -104,6 +110,7 @@ export class AccountController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/:accountId')
   @HttpCode(200)
   async remove(
@@ -116,12 +123,12 @@ export class AccountController {
     };
   }
 
-  @Delete('/current')
-  @HttpCode(200)
-  async logout(@Auth() account: Account): Promise<WebResponse<boolean>> {
-    const result = await this.accountService.logout(account);
-    return {
-      data: true,
-    };
-  }
+  // @Delete('/current')
+  // @HttpCode(200)
+  // async logout(@Auth() account: Account): Promise<WebResponse<boolean>> {
+  //   const result = await this.accountService.logout(account);
+  //   return {
+  //     data: true,
+  //   };
+  // }
 }

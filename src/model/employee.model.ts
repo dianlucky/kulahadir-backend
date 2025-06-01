@@ -26,6 +26,7 @@ export class UpdateEmployeeRequest {
   birth_date?: Date;
   phone?: string;
   account_id?: number;
+  profile_pic?: string; 
 }
 
 export class SearchEmployeeRequest {

@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { CashAdvanceService } from './cashadvance.service';
 import { Auth } from 'src/common/auth.decorator';
@@ -19,11 +20,13 @@ import {
   CreateCashAdvanceRequest,
   UpdateCashAdvanceRequest,
 } from 'src/model/cashadvance.model';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('/api/cash-advances')
 export class CashAdvanceController {
   constructor(private cashAdvanceService: CashAdvanceService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(200)
   async create(
@@ -36,6 +39,7 @@ export class CashAdvanceController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(200)
   async getAll(
@@ -47,6 +51,7 @@ export class CashAdvanceController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/by-month')
   @HttpCode(200)
   async getByMonthEmployeeId(
@@ -63,6 +68,7 @@ export class CashAdvanceController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/by-employee')
   @HttpCode(200)
   async getByEmployeeId(
@@ -75,6 +81,7 @@ export class CashAdvanceController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/:cashAdvanceId')
   @HttpCode(200)
   async get(
@@ -87,6 +94,7 @@ export class CashAdvanceController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('/:cashAdvanceId')
   @HttpCode(200)
   async update(
@@ -103,6 +111,7 @@ export class CashAdvanceController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/:cashAdvanceId')
   @HttpCode(200)
   async remove(

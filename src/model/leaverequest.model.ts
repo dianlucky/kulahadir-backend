@@ -23,7 +23,7 @@ export class CreateLeaveRequest {
 export class UpdateLeaveRequest {
   id: number;
   reason?: string;
-  attachment: string | null;
+  attachment?: string;
   status?: string;
 }
 

@@ -5,6 +5,7 @@ export class SalaryValidation {
     bonus: z.number().optional(),
     salary_deduction: z.number().optional(),
     cash_advance: z.number().optional(),
+    amount: z.number().optional(),
     note: z.string().optional(),
     employee_id: z.number().positive(),
   });

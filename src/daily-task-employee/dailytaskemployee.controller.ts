@@ -8,6 +8,8 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { DailyTaskEmployeeService } from './dailytaskemployee.service';
 import { WebResponse } from '../model/web.model';
@@ -18,23 +20,44 @@ import {
 } from '../model/dailytaskemployee.model';
 import { Auth } from '../common/auth.decorator';
 import { Account } from '@prisma/client';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('/api/daily-task-employees')
 export class DailyTaskEmployeeController {
   constructor(private dailyTaskEmployeeService: DailyTaskEmployeeService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(200)
   async create(
     @Auth() account: Account,
     @Body() request: CreateDailyTaskEmployeeRequest,
-  ): Promise<WebResponse<DailyTaskEmployeeResponse>> {
+  ): Promise<WebResponse<DailyTaskEmployeeResponse[]>> {
     const result = await this.dailyTaskEmployeeService.create(request);
     return {
       data: result,
     };
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('/by-date')
+  @HttpCode(200)
+  async getByDateEmployeeId(
+    @Auth() account: Account,
+    @Query('date') date: string,
+    @Query('employeeId', ParseIntPipe) employeeId: number,
+  ): Promise<WebResponse<DailyTaskEmployeeResponse[]>> {
+    const newDate = new Date(date);
+    const result = await this.dailyTaskEmployeeService.getByDateEmployeeId(
+      newDate,
+      employeeId,
+    );
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('/:taskEmployeeId')
   @HttpCode(200)
   async get(
@@ -47,6 +70,7 @@ export class DailyTaskEmployeeController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('/:taskEmployeeId')
   @HttpCode(200)
   async update(
@@ -65,6 +89,7 @@ export class DailyTaskEmployeeController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/:taskEmployeeId')
   @HttpCode(200)
   async remove(

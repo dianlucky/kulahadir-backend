@@ -5,19 +5,22 @@ import { EmployeeService } from '../employee/employee.service';
 import {
   CreateScheduleRequest,
   ScheduleResponse,
+  UpdateByDateEmployeeIdRequest,
   UpdateScheduleRequest,
 } from '../model/schedule.model';
 import { Account, Employee, Schedule } from '@prisma/client';
 import { ScheduleValidation } from './schedule.validation';
-import { endOfMonth, startOfMonth } from 'date-fns';
+import { endOfMonth, format, startOfMonth } from 'date-fns';
 import e from 'express';
+import { NotificationService } from 'src/notification/notification.service';
+import { id } from 'date-fns/locale';
 
 @Injectable()
 export class ScheduleService {
   constructor(
     private prismaService: PrismaService,
     private validationService: ValidationService,
-    private employeeService: EmployeeService,
+    private notificationService: NotificationService,
   ) {}
 
   toScheduleResponse(
@@ -127,18 +130,18 @@ export class ScheduleService {
     for (const employee of employees) {
       const isPartTime = employee.account.status.toLowerCase() === 'part time';
 
-      // Filter tanggal hanya Jumat, Sabtu, Minggu untuk part time
+      // Filter tanggal hanya Jumat (5), Sabtu (6), Minggu (0) untuk part time
       const filteredDates = isPartTime
         ? allDates.filter((date) => {
             const day = date.getDay();
-            return day === 1 || day === 6 || day === 0;
+            return day === 6 || day === 0 || day === 1;
           })
         : allDates;
 
       for (const date of filteredDates) {
         const schedule = await this.prismaService.schedule.create({
           data: {
-            date: date,
+            date,
             status: 'on',
             attendance_status: 'belum hadir',
             shift_code: isPartTime ? 'SF2' : 'SF1',
@@ -150,6 +153,17 @@ export class ScheduleService {
 
         createdSchedules.push(schedule);
       }
+
+      // Buat notifikasi satu kali untuk setiap employee
+      const dataNotification = {
+        employee_id: employee.id,
+        type: 'Jadwal',
+        message: `Halo Kulateam, Owner telah membuat jadwal bekerja anda untuk bulan ${format(new Date(allDates[3]), 'MMMM yyyy', { locale: id })}. Harap untuk selalu memperhatikan jadwal dan tugas harian anda. Silakan cek di menu Jadwal untuk informasi selengkapnya.`,
+        was_read: false,
+        created_at: new Date(),
+      };
+
+      await this.notificationService.create(dataNotification);
     }
 
     return createdSchedules.map(this.toScheduleResponse);
@@ -171,7 +185,38 @@ export class ScheduleService {
       },
     });
 
-    return schedules.map(this.toScheduleResponse);
+    if (!schedules) {
+      return [];
+    }
+
+    return schedules.map((schedule) => this.toScheduleResponse(schedule));
+  }
+
+  async getByDateStatus(
+    date: Date,
+    status: string,
+  ): Promise<ScheduleResponse[]> {
+    const schedules = await this.prismaService.schedule.findMany({
+      where: {
+        date: {
+          equals: date,
+        },
+        status: status,
+      },
+      include: {
+        employee: {
+          include: {
+            account: true,
+          },
+        },
+      },
+    });
+
+    if (!schedules) {
+      return [];
+    }
+
+    return schedules.map((schedule) => this.toScheduleResponse(schedule));
   }
 
   async getByMonthEmployeeId(
@@ -188,6 +233,33 @@ export class ScheduleService {
           lte: end,
         },
         employee_id: employeeId,
+      },
+      include: {
+        employee: {
+          include: {
+            account: true,
+          },
+        },
+      },
+    });
+
+    if (schedules.length == 0) {
+      return [];
+    }
+
+    return schedules.map(this.toScheduleResponse);
+  }
+
+  async getByMonthAll(month: Date): Promise<ScheduleResponse[]> {
+    const start = startOfMonth(month); // 2025-05-01T00:00:00.000Z
+    const end = endOfMonth(month); // 2025-05-31T23:59:59.999Z
+
+    const schedules = await this.prismaService.schedule.findMany({
+      where: {
+        date: {
+          gte: start,
+          lte: end,
+        },
       },
       include: {
         employee: {
@@ -253,6 +325,60 @@ export class ScheduleService {
         id: scheduleId,
       },
       data: validatedData,
+    });
+
+    if (result && !request.attendance_status && request.status == 'off') {
+      const dataNotification = {
+        employee_id: result.employee_id,
+        type: 'Libur',
+        message: `Halo Kulateam, owner telah menentukan waktu libur (cuti), anda silahkan cek di menu jadwal untuk melihat informasi selengkapnya! (Tanggal libur : ${format(result.date, 'EEEE, dd MMMM yyyy', { locale: id })})`,
+        was_read: false,
+        created_at: new Date(),
+      };
+      await this.notificationService.create(dataNotification);
+    }
+
+    if (result && request.status == 'leave') {
+      const dataNotification = {
+        employee_id: result.employee_id,
+        type: 'Libur',
+        message: `Halo Kulateam, owner telah menyetujui permintaan izin anda silahkan cek di menu jadwal untuk melihat informasi selengkapnya! (Tanggal izin : ${format(result.date, 'EEEE, dd MMMM yyyy', { locale: id })})`,
+        was_read: false,
+        created_at: new Date(),
+      };
+      await this.notificationService.create(dataNotification);
+    }
+
+    return this.toScheduleResponse(result);
+  }
+
+  async updateByDateEmployeeId(
+    date: string,
+    request: UpdateByDateEmployeeIdRequest,
+  ): Promise<ScheduleResponse> {
+    const schedule = await this.prismaService.schedule.findFirst({
+      where: {
+        date: {
+          equals: new Date(date),
+        },
+        employee_id: request.employee_id,
+      },
+    });
+
+    if (!schedule) {
+      throw new HttpException('Schedule is not exist', 404);
+    }
+
+    const result = await this.prismaService.schedule.update({
+      where: {
+        id: schedule.id,
+      },
+      include: {
+        employee: true,
+      },
+      data: {
+        status: request.status,
+      },
     });
 
     return this.toScheduleResponse(result);

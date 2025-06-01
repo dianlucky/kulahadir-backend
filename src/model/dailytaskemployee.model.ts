@@ -9,9 +9,8 @@ export class DailyTaskEmployeeResponse {
 }
 
 export class CreateDailyTaskEmployeeRequest {
-  status: string;
-  date: Date;
-  task_employee_id: number;
+  month: string;
+  make_task: boolean;
 }
 
 export class UpdateDailyTaskEmployeeRequest {

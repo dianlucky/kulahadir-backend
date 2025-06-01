@@ -14,6 +14,7 @@ import {
 } from '@prisma/client';
 import { DailyTaskEmployeeValidation } from './dailytaskemployee.validation';
 import { TaskEmployeeService } from 'src/task-employee/taskemployee.service';
+import { endOfDay, startOfDay } from 'date-fns';
 
 @Injectable()
 export class DailyTaskEmployeeService {
@@ -95,18 +96,56 @@ export class DailyTaskEmployeeService {
 
   async create(
     request: CreateDailyTaskEmployeeRequest,
-  ): Promise<DailyTaskEmployeeResponse> {
+  ): Promise<DailyTaskEmployeeResponse[]> {
     const validatedData = await this.validationService.validate(
       DailyTaskEmployeeValidation.CREATE,
       request,
     );
 
-    await this.taskEmployeeService.checkTaskEmployeeMustExists(
-      validatedData.task_employee_id,
-    );
+    const { month, make_task } = validatedData;
 
-    const result = await this.prismaService.dailyTaskEmployee.create({
-      data: validatedData,
+    if (!make_task) {
+      throw new HttpException('make_schedule harus bernilai true.', 404);
+    }
+
+    // Ambil semua data TaskEmployee
+    const allTaskEmployees = await this.prismaService.taskEmployee.findMany({
+      include: {
+        employee: true,
+        daily_task: true,
+      },
+    });
+
+    const [year, monthNum] = month.split('-').map(Number);
+    const daysInMonth = new Date(year, monthNum, 0).getDate();
+
+    const createdDailyTasks: DailyTaskEmployee[] = [];
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const currentDate = new Date(year, monthNum - 1, day); // FIXED
+
+      const dayName = currentDate.toLocaleDateString('id-ID', {
+        weekday: 'long',
+      });
+
+      for (const taskEmployee of allTaskEmployees) {
+        if (taskEmployee.day.toLowerCase() === dayName.toLowerCase()) {
+          const newEntry = await this.prismaService.dailyTaskEmployee.create({
+            data: {
+              status: 'Belum',
+              date: currentDate,
+              task_employee_id: taskEmployee.id,
+            },
+          });
+          createdDailyTasks.push(newEntry);
+        }
+      }
+    }
+
+    const result = await this.prismaService.dailyTaskEmployee.findMany({
+      where: {
+        id: { in: createdDailyTasks.map((t) => t.id) },
+      },
       include: {
         task_employee: {
           include: {
@@ -117,7 +156,38 @@ export class DailyTaskEmployeeService {
       },
     });
 
-    return this.toDailyTaskEmployeeResponse(result);
+    return result.map(this.toDailyTaskEmployeeResponse);
+  }
+
+  async getByDateEmployeeId(
+    date: Date,
+    employeeId: number,
+  ): Promise<DailyTaskEmployeeResponse[]> {
+    const results = await this.prismaService.dailyTaskEmployee.findMany({
+      where: {
+        date: {
+          gte: startOfDay(date),
+          lt: endOfDay(date),
+        },
+        task_employee: {
+          employee_id: employeeId,
+        },
+      },
+      include: {
+        task_employee: {
+          include: {
+            employee: true,
+            daily_task: true,
+          },
+        },
+      },
+    });
+
+    if (!results) {
+      return [];
+    }
+
+    return results.map((result) => this.toDailyTaskEmployeeResponse(result));
   }
 
   async get(dailyTaskEmployeeId: number): Promise<DailyTaskEmployeeResponse> {

@@ -9,7 +9,9 @@ import {
   UpdateCashAdvanceRequest,
 } from 'src/model/cashadvance.model';
 import { CashAdvanceValidation } from './cashadvance.validation';
-import { endOfMonth, startOfMonth } from 'date-fns';
+import { endOfMonth, format, startOfMonth } from 'date-fns';
+import { NotificationService } from 'src/notification/notification.service';
+import { id } from 'date-fns/locale';
 
 @Injectable()
 export class CashAdvanceService {
@@ -17,6 +19,7 @@ export class CashAdvanceService {
     private prismaService: PrismaService,
     private validationService: ValidationService,
     private employeeService: EmployeeService,
+    private notificationService: NotificationService,
   ) {}
 
   toCashAdvanceResponse(
@@ -29,6 +32,7 @@ export class CashAdvanceService {
       status: cashAdvance.status,
       date: cashAdvance.date,
       created_at: cashAdvance.created_at,
+      employee_id: cashAdvance.employee_id,
       employee: cashAdvance.employee
         ? {
             id: cashAdvance.employee.id,
@@ -99,6 +103,17 @@ export class CashAdvanceService {
         },
       },
     });
+
+    if (result) {
+      const dataNotification = {
+        employee_id: result.employee_id,
+        type: 'Kasbon',
+        message: `Pengajuan kasbon anda sejumlah Rp. ${new Intl.NumberFormat('id-ID').format(result.amount)} pada tanggal ${format(result.date, 'dd MMMM yyyy', { locale: id })} sudah diajukan, harap sabar untuk menunggu konfirmasi dari owner, atau anda dapat menghubungi owner melalui Whatsapp pribadi}`,
+        was_read: false,
+        created_at: new Date(),
+      };
+      await this.notificationService.create(dataNotification);
+    }
 
     return this.toCashAdvanceResponse(result);
   }
@@ -196,6 +211,17 @@ export class CashAdvanceService {
       },
       data: validatedData,
     });
+
+    if (result) {
+      const dataNotification = {
+        employee_id: result.employee_id,
+        type: 'Kasbon',
+        message: `Pengajuan kasbon anda sejumlah Rp. ${new Intl.NumberFormat('id-ID').format(result.amount)} pada tanggal ${format(result.date, 'dd MMMM yyyy', { locale: id })} statusnya sudah diubah menjadi ${result.status}, terimakasih atas perhatiannya untuk info selengkapnya silahkan cek di menu riwayat kasbon`,
+        was_read: false,
+        created_at: new Date(),
+      };
+      await this.notificationService.create(dataNotification);
+    }
 
     return this.toCashAdvanceResponse(result);
   }

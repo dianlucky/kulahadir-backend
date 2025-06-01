@@ -9,10 +9,13 @@ export class ScheduleValidation {
   });
 
   static readonly UPDATE: ZodType = z.object({
-    id: z.number().positive(),
-    date: z.string().transform((val) => new Date(val)).optional(),
+    id: z.number().positive().optional(),
+    date: z
+      .string()
+      .transform((val) => new Date(val))
+      .optional(),
     status: z.string().min(1).max(100).optional(),
-    attendance_status: z.string().min(1).max(100).optional(),
+    attendance_status: z.string().max(100).optional(),
     employee_id: z.number().positive().optional(),
   });
 }

@@ -7,7 +7,6 @@ import {
 import {
   AccountResponse,
   AccountType,
-  LoginRequest,
   RegisterAccountRequest,
   UpdateAccountRequest,
 } from '../model/account.model';
@@ -18,7 +17,8 @@ import { PrismaService } from '../common/prisma.service';
 import { AccountValidation } from './account.validation';
 import * as bcrypt from 'bcrypt';
 import { v4 as UUID } from 'uuid';
-import { Account } from '@prisma/client';
+import { Account, Employee } from '@prisma/client';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class AccountService {
@@ -52,7 +52,10 @@ export class AccountService {
       data: validatedData,
     });
 
+   
+
     return {
+      id: account.id,
       username: account.username,
       level: account.level,
       status: account.status,
@@ -78,47 +81,59 @@ export class AccountService {
     };
   }
 
-  async login(request: LoginRequest): Promise<AccountResponse> {
-    this.logger.debug(`AccountService.login(${JSON.stringify(request)})`);
-    const validatedData: LoginRequest = this.validationService.validate(
-      AccountValidation.LOGIN,
-      request,
-    );
+  // async login(request: LoginRequest): Promise<LoginResponse> {
+  //   this.logger.debug(`AccountService.login(${JSON.stringify(request)})`);
+  //   const validatedData: LoginRequest = this.validationService.validate(
+  //     AccountValidation.LOGIN,
+  //     request,
+  //   );
 
-    const user = (await this.prismaService.account.findFirst({
-      where: {
-        username: validatedData.username,
-      },
-    })) as AccountType;
+  //   const user = (await this.prismaService.account.findFirst({
+  //     where: {
+  //       username: validatedData.username,
+  //     },
+  //   })) as AccountType;
 
-    if (!user) {
-      throw new HttpException('Username or password is invalid', 401);
-    }
+  //   if (!user) {
+  //     throw new HttpException('Username or password is invalid', 401);
+  //   }
 
-    const isPasswordValid = await bcrypt.compare(
-      validatedData.password,
-      user.password,
-    );
-    if (!isPasswordValid) {
-      throw new HttpException('Username or password is invalid', 401);
-    }
+  //   const isPasswordValid = await bcrypt.compare(
+  //     validatedData.password,
+  //     user.password,
+  //   );
+  //   if (!isPasswordValid) {
+  //     throw new HttpException('Username or password is invalid', 401);
+  //   }
 
-    const updatedData: Account = await this.prismaService.account.update({
-      where: {
-        id: user.id,
-      },
-      data: {
-        token: UUID(),
-      },
-    });
+  //   const updatedData: Account = await this.prismaService.account.update({
+  //     where: {
+  //       id: user.id,
+  //     },
+  //     data: {
+  //       token: UUID(),
+  //     },
+  //   });
 
-    return {
-      username: updatedData.username,
-      level: updatedData.level,
-      token: updatedData.token || undefined,
-      status: updatedData.status,
-    };
-  }
+  //   const employee = await this.prismaService.employee.findFirst({
+  //     where: {
+  //       account_id: updatedData.id,
+  //     },
+  //   });
+
+  //   if (!employee) {
+  //     throw new HttpException('Akun tidak valid', 404);
+  //   }
+
+  //   return {
+  //     id: updatedData.id,
+  //     username: updatedData.username,
+  //     level: updatedData.level,
+  //     token: updatedData.token || undefined,
+  //     status: updatedData.status,
+  //     employee_id: employee.id,
+  //   };
+  // }
 
   async getAllAccount(): Promise<AccountResponse[]> {
     this.logger.info(`Getting all account that exists in database`);
@@ -226,21 +241,21 @@ export class AccountService {
     return this.toAccountResponse(result);
   }
 
-  async logout(account: Account): Promise<AccountResponse> {
-    this.logger.info(`Logout ${JSON.stringify(account.username)}`);
-    const result = await this.prismaService.account.update({
-      where: {
-        id: account.id,
-      },
-      data: {
-        token: null,
-      },
-    });
+  // async logout(account: Account): Promise<AccountResponse> {
+  //   this.logger.info(`Logout ${JSON.stringify(account.username)}`);
+  //   const result = await this.prismaService.account.update({
+  //     where: {
+  //       id: account.id,
+  //     },
+  //     data: {
+  //       token: null,
+  //     },
+  //   });
 
-    return {
-      username: result.username,
-      level: result.level,
-      status: result.status,
-    };
-  }
+  //   return {
+  //     username: result.username,
+  //     level: result.level,
+  //     status: result.status,
+  //   };
+  // }
 }

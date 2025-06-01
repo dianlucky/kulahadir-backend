@@ -10,21 +10,25 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ScheduleService } from './schedule.service';
 import { WebResponse } from 'src/model/web.model';
 import {
   CreateScheduleRequest,
   ScheduleResponse,
+  UpdateByDateEmployeeIdRequest,
   UpdateScheduleRequest,
 } from 'src/model/schedule.model';
 import { Auth } from 'src/common/auth.decorator';
 import { Account } from '@prisma/client';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Controller('/api/schedules')
 export class ScheduleController {
   constructor(private scheduleService: ScheduleService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   @HttpCode(200)
   async create(
@@ -35,7 +39,9 @@ export class ScheduleController {
     return { data: result };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/by-date')
+  @HttpCode(200)
   async getByDate(
     @Auth() account: Account,
     @Query('date') date: string,
@@ -44,7 +50,24 @@ export class ScheduleController {
     return { data: result };
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('/by-date-status')
+  @HttpCode(200)
+  async getByDateStatus(
+    @Auth() account: Account,
+    @Query('date') date: string,
+    @Query('status') status: string,
+  ): Promise<WebResponse<ScheduleResponse[]>> {
+    const result = await this.scheduleService.getByDateStatus(
+      new Date(date),
+      status,
+    );
+    return { data: result };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('/by-month')
+  @HttpCode(200)
   async getByMonthEmployeeId(
     @Auth() account: Account,
     @Query('month') month: string,
@@ -58,7 +81,23 @@ export class ScheduleController {
     return { data: result };
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('/by-month-all')
+  @HttpCode(200)
+  async getByMonthAll(
+    @Auth() account: Account,
+    @Query('month') month: string,
+    employeeId: number,
+  ): Promise<WebResponse<ScheduleResponse[]>> {
+    const result = await this.scheduleService.getByMonthAll(
+      new Date(month),
+    );
+    return { data: result };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get()
+  @HttpCode(200)
   async getByDateEmployeeId(
     @Auth() account: Account,
     @Query('employeeId', ParseIntPipe)
@@ -72,6 +111,7 @@ export class ScheduleController {
     return { data: result };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('/:scheduleId')
   @HttpCode(200)
   async get(
@@ -84,6 +124,23 @@ export class ScheduleController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Patch('/by-date')
+  @HttpCode(200)
+  async updateByDateEmployeeId(
+    @Auth() account: Account,
+    @Body() request: UpdateByDateEmployeeIdRequest,
+  ): Promise<WebResponse<ScheduleResponse>> {
+    const result = await this.scheduleService.updateByDateEmployeeId(
+      request.date,
+      request,
+    );
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch('/:scheduleId')
   @HttpCode(200)
   async update(
@@ -98,6 +155,7 @@ export class ScheduleController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('/:scheduleId')
   @HttpCode(200)
   async remove(

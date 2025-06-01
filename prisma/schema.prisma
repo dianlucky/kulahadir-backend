@@ -16,7 +16,6 @@ model Account {
   password  String?   @db.VarChar(100)
   level     String    @db.VarChar(100)
   status    String    @db.VarChar(100)
-  token     String?   @db.VarChar(100)
 
   employees Employee[]
 
@@ -79,6 +78,7 @@ model Attendance {
   check_in         DateTime  @db.DateTime()
   check_out        DateTime? @db.DateTime()
   status           String?   @db.VarChar(100)
+  snapshot         String    @db.VarChar(200) 
   attendance_long  String?   @db.VarChar(255)
   attendance_lat   String?   @db.VarChar(255)
   schedule_id      Int

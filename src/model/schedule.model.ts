@@ -32,3 +32,9 @@ export class UpdateScheduleRequest {
   attendance_status?: string;
   employee_id?: number;
 }
+
+export class UpdateByDateEmployeeIdRequest {
+  date: string;
+  status?: string;
+  employee_id?: number;
+}

@@ -7,6 +7,7 @@ export class CashAdvanceResponse {
   date: Date;
   created_at: Date;
   status: string;
+  employee_id: number;
   employee?: EmployeeResponse;
 }
 

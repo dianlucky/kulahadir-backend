@@ -1,5 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { Employee, LeaveRequest, Schedule } from '@prisma/client';
+import { Account, Employee, LeaveRequest, Schedule } from '@prisma/client';
 import { PrismaService } from 'src/common/prisma.service';
 import { ValidationService } from 'src/common/validation.service';
 import {
@@ -10,6 +10,10 @@ import {
 } from 'src/model/leaverequest.model';
 import { LeaveValidation } from './leave.validation';
 import { EmployeeService } from 'src/employee/employee.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
+import { ScheduleService } from 'src/schedule/schedule.service';
 
 @Injectable()
 export class LeaveService {
@@ -17,10 +21,12 @@ export class LeaveService {
     private prismaService: PrismaService,
     private validationService: ValidationService,
     private employeeService: EmployeeService,
+    private notificationService: NotificationService,
+    private scheduleService: ScheduleService,
   ) {}
 
   toLeaveResponse(
-    leave: LeaveRequest & { employee?: Employee },
+    leave: LeaveRequest & { employee?: Employee & { account?: Account } },
   ): LeaveResponse {
     return {
       id: leave.id,
@@ -40,6 +46,14 @@ export class LeaveService {
             profile_pic: leave.employee.profile_pic,
             created_at: leave.employee.created_at,
             account_id: leave.employee.account_id,
+            account: leave.employee.account
+              ? {
+                  id: leave.employee.account.id,
+                  username: leave.employee.account.username,
+                  level: leave.employee.account.level,
+                  status: leave.employee.account.status,
+                }
+              : undefined,
           }
         : undefined,
     };
@@ -51,7 +65,11 @@ export class LeaveService {
         id: leaveId,
       },
       include: {
-        employee: true,
+        employee: {
+          include: {
+            account: true,
+          },
+        },
       },
     });
 
@@ -80,9 +98,24 @@ export class LeaveService {
     const result = await this.prismaService.leaveRequest.create({
       data: data,
       include: {
-        employee: true,
+        employee: {
+          include: {
+            account: true,
+          },
+        },
       },
     });
+
+    if (result) {
+      const dataNotification = {
+        employee_id: result.employee_id,
+        type: `Pengajuan izin / sakit`,
+        message: `Pengajuan ${result.type} untuk tanggal ${format(result.date, 'dd MMM yyyy', { locale: id })} anda sudah diajukan, harap sabar untuk menunggu konfirmasi dari owner, atau anda dapat menghubungi owner melalui Whatsapp pribadi}`,
+        was_read: false,
+        created_at: new Date(),
+      };
+      await this.notificationService.create(dataNotification);
+    }
 
     return this.toLeaveResponse(result);
   }
@@ -93,7 +126,11 @@ export class LeaveService {
         employee_id: employeeId,
       },
       include: {
-        employee: true,
+        employee: {
+          include: {
+            account: true,
+          },
+        },
       },
     });
 
@@ -107,7 +144,11 @@ export class LeaveService {
   async getAll(): Promise<LeaveResponse[]> {
     const results = await this.prismaService.leaveRequest.findMany({
       include: {
-        employee: true,
+        employee: {
+          include: {
+            account: true,
+          },
+        },
       },
     });
     return results.map((result) => this.toLeaveResponse(result));
@@ -175,7 +216,11 @@ export class LeaveService {
     const results = await this.prismaService.leaveRequest.findMany({
       where: filters.length > 0 ? { AND: filters } : {},
       include: {
-        employee: true,
+        employee: {
+          include: {
+            account: true,
+          },
+        },
       },
     });
 
@@ -203,10 +248,38 @@ export class LeaveService {
         id: leaveId,
       },
       include: {
-        employee: true,
+        employee: {
+          include: {
+            account: true,
+          },
+        },
       },
       data: validatedData,
     });
+
+    if (result) {
+      const dataNotification = {
+        employee_id: result.employee_id,
+        type: `Pengajuan izin / sakit`,
+        message: `Pengajuan ${result.type} anda statusnya sudah dirubah menjadi ${result.status}, terimakasih atas perhatiannya, untuk lebih lengkapnya silahkan cek menu riwayat pengajuan ${result.type}`,
+        was_read: false,
+        created_at: new Date(),
+      };
+      await this.notificationService.create(dataNotification);
+    }
+
+    if (request.status == 'Accepted') {
+      const schedule = await this.scheduleService.getByDateEmployeeId(
+        result.employee_id,
+        result.date,
+      );
+
+      const updatedStatus = {
+        id: schedule.id,
+        status: 'leave',
+      };
+      await this.scheduleService.update(schedule.id, updatedStatus);
+    }
 
     return this.toLeaveResponse(result);
   }
@@ -218,7 +291,11 @@ export class LeaveService {
         id: leaveId,
       },
       include: {
-        employee: true,
+        employee: {
+          include: {
+            account: true,
+          },
+        },
       },
     });
     return this.toLeaveResponse(result);

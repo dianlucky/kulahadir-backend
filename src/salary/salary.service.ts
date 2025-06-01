@@ -76,11 +76,19 @@ export class SalaryService {
       SalaryValidation.CREATE,
       request,
     );
+
     await this.employeeService.checkEmployeeMustExists(
       validatedData.employee_id,
     );
+
+    const data = {
+      ...validatedData,
+      date: new Date(request.date),
+      created_at: new Date(),
+    };
+
     const result = await this.prismaService.salary.create({
-      data: validatedData,
+      data: data,
     });
 
     return this.toSalaryResponse(result);
@@ -94,11 +102,11 @@ export class SalaryService {
   async getByMonthEmployeeId(
     month: Date,
     employeeId: number,
-  ): Promise<SalaryResponse[]> {
+  ): Promise<SalaryResponse | null> {
     const start = startOfMonth(month);
     const end = endOfMonth(month);
 
-    const results = await this.prismaService.salary.findMany({
+    const result = await this.prismaService.salary.findFirst({
       where: {
         date: {
           gte: start,
@@ -115,11 +123,11 @@ export class SalaryService {
       },
     });
 
-    if (results.length == 0) {
-      return [];
+    if (!result) {
+      return null;
     }
 
-    return results.map((result) => this.toSalaryResponse(result));
+    return this.toSalaryResponse(result);
   }
 
   async update(

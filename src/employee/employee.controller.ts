@@ -3,12 +3,15 @@ import {
   Controller,
   Delete,
   Get,
+  Header,
   HttpCode,
+  HttpException,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
+  Res,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -28,6 +31,9 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { File as MulterFile } from 'multer';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import PDFDocument from 'pdfkit';
+import { Response } from 'express';
+import * as ExcelJS from 'exceljs';
 
 @Controller('/api/employees')
 export class EmployeeController {
@@ -102,6 +108,65 @@ export class EmployeeController {
       data: result,
     };
   }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Get('export/pdf')
+  // @HttpCode(200)
+  // async exportPdf(@Res() res: Response) {
+  //   const employees = await this.employeeService.getAll();
+
+  //   const doc = new PDFDocument();
+  //   const filename = 'employees.pdf';
+
+  //   res.setHeader('Content-Type', 'application/pdf');
+  //   res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+
+  //   doc.pipe(res);
+  //   doc.fontSize(18).text('Employee List', { underline: true });
+  //   doc.moveDown();
+
+  //   employees.forEach((emp, i) => {
+  //     doc
+  //       .fontSize(12)
+  //       .text(`${i + 1}. ${emp.name} - ${emp.phone} - ${emp.account?.level}`);
+  //   });
+
+  //   doc.end();
+  // }
+
+  // @UseGuards(JwtAuthGuard)
+  // @Get('/export/excel')
+  // @HttpCode(200)
+  // async exportExcel(@Res() res: Response) {
+  //   const employees = await this.employeeService.getAll();
+
+  //   const workbook = new ExcelJS.Workbook();
+  //   const worksheet = workbook.addWorksheet('Employees');
+
+  //   worksheet.columns = [
+  //     { header: 'No', key: 'no' },
+  //     { header: 'Name', key: 'name' },
+  //     { header: 'Phone', key: 'phone' },
+  //     { header: 'Level', key: 'level' },
+  //   ];
+
+  //   employees.forEach((emp, i) => {
+  //     worksheet.addRow({
+  //       no: i + 1,
+  //       name: emp.name,
+  //       phone: emp.phone,
+  //       level: emp.account?.level,
+  //     });
+  //   });
+
+  //   const buffer = await workbook.xlsx.writeBuffer();
+  //   res.set({
+  //     'Content-Type':
+  //       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  //     'Content-Disposition': 'attachment; filename=employees.xlsx',
+  //   });
+  //   res.end(buffer);
+  // }
 
   @UseGuards(JwtAuthGuard)
   @Patch('/:employeeId')

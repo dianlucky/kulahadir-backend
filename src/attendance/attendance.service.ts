@@ -244,6 +244,35 @@ export class AttendanceService {
     return results.map((result) => this.toAttendanceResponse(result));
   }
 
+  async getByMonth(month: Date): Promise<AttendanceResponse[]> {
+    const start = startOfMonth(month);
+    const end = endOfMonth(month);
+
+    const results = await this.prismaService.attendance.findMany({
+      where: {
+        schedule: {
+          date: {
+            gte: start,
+            lte: end,
+          },
+        },
+      },
+      include: {
+        schedule: {
+          include: {
+            employee: true,
+          },
+        },
+      },
+    });
+
+    if (results.length == 0) {
+      return [];
+    }
+
+    return results.map((result) => this.toAttendanceResponse(result));
+  }
+
   async getByDateEmployeeId(
     date: Date,
     employeeId: number,

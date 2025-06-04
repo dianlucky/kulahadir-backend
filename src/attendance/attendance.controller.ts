@@ -102,6 +102,19 @@ export class AttendanceController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('/by-month-all')
+  @HttpCode(200)
+  async getByMonthAll(
+    @Auth() account: Account,
+    @Query('month') month: string,
+  ): Promise<WebResponse<AttendanceResponse[]>> {
+    const result = await this.attendanceService.getByMonth(new Date(month));
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('/by-date')
   @HttpCode(200)
   async getByDateEmployeeId(

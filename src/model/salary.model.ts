@@ -32,3 +32,8 @@ export class UpdateSalaryRequest {
   note?: string | null;
   employee_id?: number;
 }
+
+export class SearchSalaryRequest {
+  month?: string;
+  status?: string;
+}

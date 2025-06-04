@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { Account, Employee, Salary } from '@prisma/client';
 import { PrismaService } from 'src/common/prisma.service';
 import { ValidationService } from 'src/common/validation.service';
@@ -6,6 +6,7 @@ import { EmployeeService } from 'src/employee/employee.service';
 import {
   CreateSalaryRequest,
   SalaryResponse,
+  SearchSalaryRequest,
   UpdateSalaryRequest,
 } from 'src/model/salary.model';
 import { SalaryValidation } from './salary.validation';
@@ -99,6 +100,24 @@ export class SalaryService {
     return this.toSalaryResponse(result);
   }
 
+  async getAll(): Promise<SalaryResponse[]> {
+    const results = await this.prismaService.salary.findMany({
+      include: {
+        employee: {
+          include: {
+            account: true,
+          },
+        },
+      },
+    });
+
+    if (!results) {
+      return [];
+    }
+
+    return results.map((result) => this.toSalaryResponse(result));
+  }
+
   async getByMonthEmployeeId(
     month: Date,
     employeeId: number,
@@ -128,6 +147,62 @@ export class SalaryService {
     }
 
     return this.toSalaryResponse(result);
+  }
+
+  async search(
+    request: SearchSalaryRequest,
+  ): Promise<{ data: SalaryResponse[] }> {
+    const filters: any = [];
+    if (request.month) {
+      const [yearNum, monthNum] = request.month.split('-').map(Number);
+
+      if (isNaN(yearNum) || isNaN(monthNum)) {
+        throw new BadRequestException(
+          'Format bulan tidak valid. Gunakan yyyy-MM.',
+        );
+      }
+
+      const startDate = new Date(yearNum, monthNum - 1, 1);
+      const endDate = new Date(yearNum, monthNum, 1);
+      filters.push({
+        date: {
+          gte: startDate,
+          lt: endDate,
+        },
+      });
+    }
+    if (request.status && request.status != 'Semua') {
+      filters.push({
+        OR: [
+          {
+            employee: {
+              account: {
+                status: request.status,
+              },
+            },
+          },
+        ],
+      });
+    }
+
+    const salaries = await this.prismaService.salary.findMany({
+      where: {
+        AND: [
+          ...filters,
+          {
+            employee: {
+              account: {
+                level: 'Pegawai',
+              },
+            },
+          },
+        ],
+      },
+    });
+
+    return {
+      data: salaries.map((salary) => this.toSalaryResponse(salary)),
+    };
   }
 
   async update(

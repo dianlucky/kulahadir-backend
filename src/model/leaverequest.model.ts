@@ -16,7 +16,7 @@ export class CreateLeaveRequest {
   reason: string;
   type: string;
   attachment: string | null;
-  date: Date;
+  date?: Date;
   employee_id: number;
 }
 

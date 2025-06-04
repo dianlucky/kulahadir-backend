@@ -22,5 +22,6 @@ export class EmployeeValidation {
     name: z.string().max(100).optional(),
     birth_date: z.string().optional(),
     phone: z.string().max(100).optional(),
+    status: z.string().max(100).optional(),
   });
 }

@@ -26,11 +26,12 @@ export class UpdateEmployeeRequest {
   birth_date?: Date;
   phone?: string;
   account_id?: number;
-  profile_pic?: string; 
+  profile_pic?: string;
 }
 
 export class SearchEmployeeRequest {
   name?: string;
   birth_date?: Date;
   phone?: string;
+  status?: string;
 }

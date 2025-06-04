@@ -168,6 +168,17 @@ export class EmployeeService {
         ],
       });
     }
+    if (validatedData.status && validatedData.status != 'Semua') {
+      filters.push({
+        OR: [
+          {
+            account: {
+              status: validatedData.status,
+            },
+          },
+        ],
+      });
+    }
 
     if (validatedData.birth_date) {
       filters.push({
@@ -196,7 +207,12 @@ export class EmployeeService {
     console.log(filters);
 
     const employees = await this.prismaService.employee.findMany({
-      where: filters.length > 0 ? { OR: filters } : {},
+      where: {
+        ...(filters.length > 0 ? { OR: filters } : {}),
+        account: {
+          level: 'Pegawai',
+        },
+      },
       include: {
         account: true,
       },

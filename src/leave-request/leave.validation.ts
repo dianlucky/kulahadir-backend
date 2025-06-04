@@ -11,6 +11,7 @@ export class LeaveValidation {
       }
       return val;
     }, z.date()),
+    attachment: z.string().max(255).optional(), // file name
   });
 
   static readonly UPDATE: ZodType = z.object({

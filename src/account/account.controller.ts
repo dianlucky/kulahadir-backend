@@ -36,17 +36,6 @@ export class AccountController {
       data: result,
     };
   }
-
-  // @Post('/login')
-  // @HttpCode(200)
-  // async login(
-  //   @Body() request: LoginRequest,
-  // ): Promise<WebResponse<AccountResponse>> {
-  //   const result = await this.accountService.login(request);
-  //   return {
-  //     data: result,
-  //   };
-  // }
   @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(200)
@@ -122,13 +111,4 @@ export class AccountController {
       data: true,
     };
   }
-
-  // @Delete('/current')
-  // @HttpCode(200)
-  // async logout(@Auth() account: Account): Promise<WebResponse<boolean>> {
-  //   const result = await this.accountService.logout(account);
-  //   return {
-  //     data: true,
-  //   };
-  // }
 }

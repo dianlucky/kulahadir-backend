@@ -52,8 +52,6 @@ export class AccountService {
       data: validatedData,
     });
 
-   
-
     return {
       id: account.id,
       username: account.username,
@@ -80,60 +78,6 @@ export class AccountService {
       status: account.status,
     };
   }
-
-  // async login(request: LoginRequest): Promise<LoginResponse> {
-  //   this.logger.debug(`AccountService.login(${JSON.stringify(request)})`);
-  //   const validatedData: LoginRequest = this.validationService.validate(
-  //     AccountValidation.LOGIN,
-  //     request,
-  //   );
-
-  //   const user = (await this.prismaService.account.findFirst({
-  //     where: {
-  //       username: validatedData.username,
-  //     },
-  //   })) as AccountType;
-
-  //   if (!user) {
-  //     throw new HttpException('Username or password is invalid', 401);
-  //   }
-
-  //   const isPasswordValid = await bcrypt.compare(
-  //     validatedData.password,
-  //     user.password,
-  //   );
-  //   if (!isPasswordValid) {
-  //     throw new HttpException('Username or password is invalid', 401);
-  //   }
-
-  //   const updatedData: Account = await this.prismaService.account.update({
-  //     where: {
-  //       id: user.id,
-  //     },
-  //     data: {
-  //       token: UUID(),
-  //     },
-  //   });
-
-  //   const employee = await this.prismaService.employee.findFirst({
-  //     where: {
-  //       account_id: updatedData.id,
-  //     },
-  //   });
-
-  //   if (!employee) {
-  //     throw new HttpException('Akun tidak valid', 404);
-  //   }
-
-  //   return {
-  //     id: updatedData.id,
-  //     username: updatedData.username,
-  //     level: updatedData.level,
-  //     token: updatedData.token || undefined,
-  //     status: updatedData.status,
-  //     employee_id: employee.id,
-  //   };
-  // }
 
   async getAllAccount(): Promise<AccountResponse[]> {
     this.logger.info(`Getting all account that exists in database`);
@@ -240,22 +184,4 @@ export class AccountService {
 
     return this.toAccountResponse(result);
   }
-
-  // async logout(account: Account): Promise<AccountResponse> {
-  //   this.logger.info(`Logout ${JSON.stringify(account.username)}`);
-  //   const result = await this.prismaService.account.update({
-  //     where: {
-  //       id: account.id,
-  //     },
-  //     data: {
-  //       token: null,
-  //     },
-  //   });
-
-  //   return {
-  //     username: result.username,
-  //     level: result.level,
-  //     status: result.status,
-  //   };
-  // }
 }

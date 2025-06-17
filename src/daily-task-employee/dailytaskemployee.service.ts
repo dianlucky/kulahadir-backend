@@ -21,7 +21,7 @@ export class DailyTaskEmployeeService {
   constructor(
     private validationService: ValidationService,
     private prismaService: PrismaService,
-    private taskEmployeeService: TaskEmployeeService,
+    // private taskEmployeeService: TaskEmployeeService,
   ) {}
 
   toDailyTaskEmployeeResponse(

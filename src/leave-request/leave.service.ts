@@ -81,17 +81,16 @@ export class LeaveService {
   }
 
   async create(request: CreateLeaveRequest): Promise<LeaveResponse> {
-    const validatedData = await this.validationService.validate(
-      LeaveValidation.CREATE,
-      request,
-    );
+    // const validatedData = await this.validationService.validate(
+    //   LeaveValidation.CREATE,
+    //   request,
+    // );
 
     await this.employeeService.checkEmployeeMustExists(
-      validatedData.employee_id,
+      request.employee_id,
     );
-
     const data = {
-      ...validatedData,
+      ...request,
       status: 'pending',
       created_at: new Date(),
     };

@@ -134,6 +134,31 @@ export class AttendanceService {
         created_at: new Date(),
       };
       await this.notificationService.create(dataNotification);
+
+      const targetEmployees = await this.prismaService.employee.findMany({
+        where: {
+          account: {
+            level: {
+              in: ['Owner', 'Admin'],
+            },
+          },
+        },
+        include: {
+          account: true,
+        },
+      });
+
+      const notifyAdmins = targetEmployees.map((admin) =>
+        this.notificationService.create({
+          employee_id: admin.id,
+          type: `Pengajuan baru`,
+          message: `Sepertinya pegawai anda (${result.schedule.employee.name}) terlambat hari ini (Jam check in ${format(result.check_in, 'HH:mm', { locale: id })}).`,
+          was_read: false,
+          created_at: new Date(),
+        }),
+      );
+
+      await Promise.all(notifyAdmins);
     }
 
     return this.toAttendanceResponse(result);

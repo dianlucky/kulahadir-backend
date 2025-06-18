@@ -163,6 +163,8 @@ export class ScheduleService {
         created_at: new Date(),
       };
 
+      
+
       await this.notificationService.create(dataNotification);
     }
 

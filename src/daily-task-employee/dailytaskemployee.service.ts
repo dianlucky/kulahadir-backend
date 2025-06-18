@@ -159,6 +159,31 @@ export class DailyTaskEmployeeService {
     return result.map(this.toDailyTaskEmployeeResponse);
   }
 
+  async getByDate(date: Date): Promise<DailyTaskEmployeeResponse[]> {
+    const results = await this.prismaService.dailyTaskEmployee.findMany({
+      where: {
+        date: {
+          gte: startOfDay(date),
+          lt: endOfDay(date),
+        },
+      },
+      include: {
+        task_employee: {
+          include: {
+            employee: true,
+            daily_task: true,
+          },
+        },
+      },
+    });
+
+    if (!results) {
+      return [];
+    }
+
+    return results.map((result) => this.toDailyTaskEmployeeResponse(result));
+  }
+
   async getByDateEmployeeId(
     date: Date,
     employeeId: number,

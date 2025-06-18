@@ -58,6 +58,20 @@ export class DailyTaskEmployeeController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('/by-date-all')
+  @HttpCode(200)
+  async getByDate(
+    @Auth() account: Account,
+    @Query('date') date: string,
+  ): Promise<WebResponse<DailyTaskEmployeeResponse[]>> {
+    const newDate = new Date(date);
+    const result = await this.dailyTaskEmployeeService.getByDate(newDate);
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('/:taskEmployeeId')
   @HttpCode(200)
   async get(

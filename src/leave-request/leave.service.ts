@@ -86,9 +86,7 @@ export class LeaveService {
     //   request,
     // );
 
-    await this.employeeService.checkEmployeeMustExists(
-      request.employee_id,
-    );
+    await this.employeeService.checkEmployeeMustExists(request.employee_id);
     const data = {
       ...request,
       status: 'pending',
@@ -114,6 +112,31 @@ export class LeaveService {
         created_at: new Date(),
       };
       await this.notificationService.create(dataNotification);
+
+      const targetEmployees = await this.prismaService.employee.findMany({
+        where: {
+          account: {
+            level: {
+              in: ['Owner', 'Admin'],
+            },
+          },
+        },
+        include: {
+          account: true,
+        },
+      });
+
+      const notifyAdmins = targetEmployees.map((admin) =>
+        this.notificationService.create({
+          employee_id: admin.id,
+          type: `Pengajuan baru`,
+          message: `Pengajuan baru dari pegawai ${result.employee.name} telah dibuat untuk tanggal ${format(result.date, 'dd MMM yyyy', { locale: id })}. Diharapkan untuk segera ditindaklanjuti.`,
+          was_read: false,
+          created_at: new Date(),
+        }),
+      );
+
+      await Promise.all(notifyAdmins);
     }
 
     return this.toLeaveResponse(result);

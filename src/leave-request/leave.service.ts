@@ -92,6 +92,7 @@ export class LeaveService {
       status: 'pending',
       created_at: new Date(),
     };
+    console.log('Data yang dikirim ke Prisma:', data);
     const result = await this.prismaService.leaveRequest.create({
       data: data,
       include: {

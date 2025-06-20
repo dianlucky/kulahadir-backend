@@ -30,6 +30,7 @@ import * as PDFDocument from 'pdfkit';
 import { Response } from 'express';
 import * as ExcelJS from 'exceljs';
 import { string } from 'zod';
+import { id } from 'date-fns/locale';
 
 @Controller('/api/salaries')
 export class SalaryController {
@@ -77,34 +78,6 @@ export class SalaryController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('/:salaryId')
-  @HttpCode(200)
-  async get(
-    @Auth() account: Account,
-    @Param('salaryId', ParseIntPipe) salaryId: number,
-  ): Promise<WebResponse<SalaryResponse>> {
-    const result = await this.salaryService.get(salaryId);
-    return {
-      data: result,
-    };
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Patch('/:salaryId')
-  @HttpCode(200)
-  async update(
-    @Auth() account: Account,
-    @Param('salaryId', ParseIntPipe) salaryId: number,
-    @Body() request: UpdateSalaryRequest,
-  ): Promise<WebResponse<SalaryResponse>> {
-    request.id = salaryId;
-    const result = await this.salaryService.update(salaryId, request);
-    return {
-      data: result,
-    };
-  }
-
-  @UseGuards(JwtAuthGuard)
   @Get('/pdf')
   @Header('Content-Type', 'application/pdf')
   async downloadPdf(
@@ -144,12 +117,12 @@ export class SalaryController {
         status: status,
       };
 
-      const data: any = await this.salaryService.search(request);
-
+      const { data } = await this.salaryService.search(request);
+      console.log('Data Gaji :', data);
       // Table configuration
       const tableHeaders = ['No.', 'Nama Pegawai', 'Bulan', 'Gaji', 'Status'];
       // Adjusted column widths for better proportions
-      const colWidths = [50, 200, 120, 120]; // Total: 490px
+      const colWidths = [40, 180, 90, 90, 90]; // Total: 490px
       const rowHeight = 35;
       const fontSize = 10;
 
@@ -263,11 +236,11 @@ export class SalaryController {
           const formattedAmount = salary.amount
             ? `Rp. ${new Intl.NumberFormat('id-ID').format(salary.amount)}`
             : 'N/A';
-          const status = salary.employee.account?.status || 'N/A';
+          const status = salary.employee?.account?.status || 'N/A';
 
           const rowData = [
             (index + 1).toString(),
-            salary.employee.name || 'N/A',
+            salary.employee?.name || 'N/A',
             formattedDate,
             formattedAmount,
             status,
@@ -303,6 +276,207 @@ export class SalaryController {
         'Gagal menghasilkan PDF karena error internal server.',
       );
     }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/excel')
+  @Header(
+    'Content-Type',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  )
+  async downloadExcel(
+    @Res() res: Response,
+    @Query('status') status: string,
+    @Query('month') month: string,
+  ) {
+    try {
+      const request: SearchSalaryRequest = {
+        month: month,
+        status: status,
+      };
+
+      const { data } = await this.salaryService.search(request);
+      console.log('Data Gaji :', data);
+
+      // Create workbook and worksheet
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Laporan Gaji Pegawai');
+
+      // Set worksheet properties
+      worksheet.properties.defaultRowHeight = 20;
+
+      // Add title
+      worksheet.mergeCells('A1:E1');
+      const titleCell = worksheet.getCell('A1');
+      titleCell.value = `LAPORAN GAJI PEGAWAI - ${format(new Date(month), 'MMMM yyyy', { locale: id })}`;
+      titleCell.font = {
+        size: 16,
+        bold: true,
+        color: { argb: 'FF000000' },
+      };
+      titleCell.alignment = {
+        horizontal: 'center',
+        vertical: 'middle',
+      };
+      titleCell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFE6E6FA' },
+      };
+
+      // Add empty row for spacing
+      worksheet.addRow([]);
+
+      // Define headers
+      const headers = ['No.', 'Nama Pegawai', 'Bulan', 'Gaji', 'Status'];
+      const headerRow = worksheet.addRow(headers);
+
+      // Style header row
+      headerRow.eachCell((cell, colNumber) => {
+        cell.font = {
+          bold: true,
+          color: { argb: 'FFFFFFFF' },
+        };
+        cell.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FF4472C4' },
+        };
+        cell.alignment = {
+          horizontal: 'center',
+          vertical: 'middle',
+        };
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+        };
+      });
+
+      // Check if data exists and has length
+      if (data && Array.isArray(data) && data.length > 0) {
+        data.forEach((salary, index) => {
+          const formattedDate = salary.date
+            ? format(salary.date, 'MMMM yyyy')
+            : 'N/A';
+          const formattedAmount = salary.amount
+            ? `Rp. ${new Intl.NumberFormat('id-ID').format(salary.amount)}`
+            : 'N/A';
+          const status = salary.employee?.account?.status || 'N/A';
+
+          const row = worksheet.addRow([
+            index + 1,
+            salary.employee?.name || 'N/A',
+            formattedDate,
+            formattedAmount,
+            status,
+          ]);
+
+          // Style data rows
+          row.eachCell((cell, colNumber) => {
+            cell.alignment = {
+              horizontal: colNumber === 1 ? 'center' : 'left',
+              vertical: 'middle',
+            };
+            cell.border = {
+              top: { style: 'thin' },
+              left: { style: 'thin' },
+              bottom: { style: 'thin' },
+              right: { style: 'thin' },
+            };
+
+            // Alternate row colors
+            if (index % 2 === 0) {
+              cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFF8F9FA' },
+              };
+            }
+          });
+        });
+      } else {
+        // No data message
+        const noDataRow = worksheet.addRow([
+          '',
+          'Tidak ada data kehadiran yang tersedia',
+          '',
+          '',
+        ]);
+        worksheet.mergeCells(`A${noDataRow.number}:D${noDataRow.number}`);
+        const noDataCell = worksheet.getCell(`A${noDataRow.number}`);
+        noDataCell.alignment = { horizontal: 'center', vertical: 'middle' };
+        noDataCell.font = { italic: true, color: { argb: 'FF666666' } };
+      }
+
+      // Set column widths
+      worksheet.getColumn(1).width = 8; // No.
+      worksheet.getColumn(2).width = 25; // Nama Pegawai
+      worksheet.getColumn(3).width = 18; // Check in
+      worksheet.getColumn(4).width = 18; // Check out
+      worksheet.getColumn(5).width = 15; // Status
+
+      // Add footer with generation info
+      const footerRowNum = worksheet.rowCount + 2;
+      worksheet.mergeCells(`A${footerRowNum}:D${footerRowNum}`);
+      const footerCell = worksheet.getCell(`A${footerRowNum}`);
+      footerCell.value = `Generated on: ${new Date().toLocaleString('id-ID')}`;
+      footerCell.font = {
+        size: 10,
+        italic: true,
+        color: { argb: 'FF666666' },
+      };
+      footerCell.alignment = { horizontal: 'center' };
+
+      // Set response headers
+      const filename = `laporan-kehadiran-${new Date().toISOString().split('T')[0]}.xlsx`;
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${filename}"`,
+      );
+      res.setHeader(
+        'Content-Type',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+
+      // Write to response
+      await workbook.xlsx.write(res);
+      res.end();
+    } catch (error) {
+      console.error('Error generating Excel file:', error);
+      throw new InternalServerErrorException(
+        'Gagal menghasilkan file Excel karena error internal server.',
+      );
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/:salaryId')
+  @HttpCode(200)
+  async get(
+    @Auth() account: Account,
+    @Param('salaryId', ParseIntPipe) salaryId: number,
+  ): Promise<WebResponse<SalaryResponse>> {
+    const result = await this.salaryService.get(salaryId);
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('/:salaryId')
+  @HttpCode(200)
+  async update(
+    @Auth() account: Account,
+    @Param('salaryId', ParseIntPipe) salaryId: number,
+    @Body() request: UpdateSalaryRequest,
+  ): Promise<WebResponse<SalaryResponse>> {
+    request.id = salaryId;
+    const result = await this.salaryService.update(salaryId, request);
+    return {
+      data: result,
+    };
   }
 
   @UseGuards(JwtAuthGuard)

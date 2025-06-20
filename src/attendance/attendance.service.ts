@@ -320,7 +320,7 @@ export class AttendanceService {
     return this.toAttendanceResponse(result);
   }
 
-  async getByDateAll(date: Date): Promise<AttendanceResponse[]> {
+  async getByDateAll(date: Date | string): Promise<AttendanceResponse[]> {
     const results = await this.prismaService.attendance.findMany({
       where: {
         schedule: {

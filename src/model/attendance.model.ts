@@ -34,3 +34,8 @@ export class UpdateAttendanceRequest {
   status: string;
   schedule_id: number;
 }
+
+export class SearchAttendanceRequest {
+  status?: string;
+  date?: string;
+}

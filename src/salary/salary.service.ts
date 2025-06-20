@@ -198,6 +198,13 @@ export class SalaryService {
           },
         ],
       },
+      include: {
+        employee: {
+          include: {
+            account: true,
+          },
+        },
+      },
     });
 
     return {

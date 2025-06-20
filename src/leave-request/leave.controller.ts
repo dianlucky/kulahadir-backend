@@ -58,7 +58,6 @@ export class LeaveController {
     const request = new CreateLeaveRequest();
     request.reason = body.reason;
     request.type = body.type;
-    request.reason = body.reason;
     request.date = body.date ? new Date(body.date) : new Date();
     request.employee_id = parseInt(body.employee_id);
     if (file) {

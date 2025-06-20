@@ -7,7 +7,11 @@ import { hostname } from 'os';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.enableCors();
+  app.enableCors({
+    origin: ['http://localhost:5173', 'https://dianlucky.my.id'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    credentials: true,
+  });
   const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
   app.useLogger(logger);
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {

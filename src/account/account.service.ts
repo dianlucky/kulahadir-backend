@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import {
   AccountResponse,
-  AccountType,
   RegisterAccountRequest,
   UpdateAccountRequest,
 } from '../model/account.model';
@@ -16,9 +15,7 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { PrismaService } from '../common/prisma.service';
 import { AccountValidation } from './account.validation';
 import * as bcrypt from 'bcrypt';
-import { v4 as UUID } from 'uuid';
-import { Account, Employee } from '@prisma/client';
-import { NotificationService } from 'src/notification/notification.service';
+import { Account } from '@prisma/client';
 
 @Injectable()
 export class AccountService {
@@ -31,16 +28,17 @@ export class AccountService {
 
   async register(request: RegisterAccountRequest): Promise<AccountResponse> {
     this.logger.info(`Register new account ${JSON.stringify(request)}`);
-    const validatedData: RegisterAccountRequest =
-      this.validationService.validate(AccountValidation.REGISTER, request);
+    const validatedData = this.validationService.validate(
+      AccountValidation.REGISTER,
+      request,
+    ) as RegisterAccountRequest;
 
-    const totalAccountWithSameUsername = await this.prismaService.account.count(
-      {
+    const totalAccountWithSameUsername: any =
+      await this.prismaService.account.count({
         where: {
           username: validatedData.username,
         },
-      },
-    );
+      });
 
     if (totalAccountWithSameUsername != 0) {
       throw new HttpException('Username already exists', 400);
@@ -127,13 +125,10 @@ export class AccountService {
       request,
     );
 
-    const oldAccount = await this.checkAccountMustExists(account.id);
+    // const oldAccount = await this.checkAccountMustExists(account.id);
 
     if (request.password) {
-      validatedData.password = validatedData.password = await bcrypt.hash(
-        validatedData.password,
-        10,
-      );
+      validatedData.password = await bcrypt.hash(validatedData.password, 10);
     }
 
     const updatedAccount = await this.prismaService.account.update({

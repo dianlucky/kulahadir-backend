@@ -42,6 +42,7 @@ export class AccountController {
   async getAllAccount(
     @Auth() account: Account,
   ): Promise<WebResponse<AccountResponse[]>> {
+    console.log(account);
     const result = await this.accountService.getAllAccount();
     return {
       data: result,

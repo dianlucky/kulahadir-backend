@@ -89,9 +89,7 @@ export class ScheduleController {
     @Query('month') month: string,
     employeeId: number,
   ): Promise<WebResponse<ScheduleResponse[]>> {
-    const result = await this.scheduleService.getByMonthAll(
-      new Date(month),
-    );
+    const result = await this.scheduleService.getByMonthAll(new Date(month));
     return { data: result };
   }
 

@@ -18,6 +18,4 @@ export class SalaryValidation {
     note: z.string().optional(),
     employee_id: z.number().positive(),
   });
-
-  
 }

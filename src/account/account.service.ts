@@ -125,8 +125,6 @@ export class AccountService {
       request,
     );
 
-    // const oldAccount = await this.checkAccountMustExists(account.id);
-
     if (request.password) {
       validatedData.password = await bcrypt.hash(validatedData.password, 10);
     }
@@ -151,6 +149,9 @@ export class AccountService {
     );
 
     const oldAccount = await this.checkAccountMustExists(accountId);
+    if (!oldAccount) {
+      throw new HttpException('Account is not found', 404);
+    }
 
     if (request.password) {
       validatedData.password = validatedData.password = await bcrypt.hash(

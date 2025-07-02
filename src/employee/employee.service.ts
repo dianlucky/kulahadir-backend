@@ -87,16 +87,16 @@ export class EmployeeService {
       },
     });
 
-    if (employee) {
-      const dataNotification = {
-        employee_id: employee.id,
-        type: 'Akun',
-        message: `Selamat datang di kulateam!`,
-        was_read: false,
-        created_at: new Date(),
-      };
-      await this.notificationService.create(dataNotification);
-    }
+    // if (employee) {
+    //   const dataNotification = {
+    //     employee_id: employee.id,
+    //     type: 'Akun',
+    //     message: `Selamat datang di kulateam!`,
+    //     was_read: false,
+    //     created_at: new Date(),
+    //   };
+    //   await this.notificationService.create(dataNotification);
+    // }
 
     return this.toEmployeeResponse(employee);
   }

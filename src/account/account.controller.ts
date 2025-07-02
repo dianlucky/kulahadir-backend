@@ -36,6 +36,7 @@ export class AccountController {
       data: result,
     };
   }
+  
   @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(200)

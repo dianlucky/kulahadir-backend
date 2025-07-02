@@ -106,7 +106,7 @@ export class TaskEmployeeService {
     });
     return results.map((result) => this.toTaskEmployeeResponse(result));
   }
-
+  
   async get(taskEmployeeId: number): Promise<TaskEmployeeResponse> {
     const result = await this.checkTaskEmployeeMustExists(taskEmployeeId);
     return this.toTaskEmployeeResponse(result);

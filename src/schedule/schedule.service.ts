@@ -114,7 +114,7 @@ export class ScheduleService {
         },
       },
       include: {
-        account: true, // relasi ke tabel Employee
+        account: true,
       },
     });
 
@@ -122,7 +122,7 @@ export class ScheduleService {
     const allDates: Date[] = [];
     const totalDays = new Date(yearNum, monthNum, 0).getDate();
     for (let day = 1; day <= totalDays; day++) {
-      allDates.push(new Date(yearNum, monthNum - 1, day + 1));
+      allDates.push(new Date(yearNum, monthNum - 1, day));
     }
 
     const createdSchedules: Schedule[] = [];
@@ -130,15 +130,27 @@ export class ScheduleService {
     for (const employee of employees) {
       const isPartTime = employee.account.status.toLowerCase() === 'part time';
 
-      // Filter tanggal hanya Jumat (5), Sabtu (6), Minggu (0) untuk part time
+      // Filter tanggal: Jumat, Sabtu, Minggu untuk part-time
       const filteredDates = isPartTime
         ? allDates.filter((date) => {
             const day = date.getDay();
-            return day === 6 || day === 0 || day === 1;
+            return day === 5 || day === 6 || day === 0;
           })
         : allDates;
 
       for (const date of filteredDates) {
+        // Cek apakah jadwal untuk tanggal ini dan pegawai ini sudah ada
+        const existingSchedule = await this.prismaService.schedule.findFirst({
+          where: {
+            employee_id: employee.id,
+            date: date,
+          },
+        });
+
+        if (existingSchedule) {
+          continue; // Skip jika sudah ada
+        }
+
         const schedule = await this.prismaService.schedule.create({
           data: {
             date,
@@ -154,16 +166,22 @@ export class ScheduleService {
         createdSchedules.push(schedule);
       }
 
-      // Buat notifikasi satu kali untuk setiap employee
-      const dataNotification = {
-        employee_id: employee.id,
-        type: 'Jadwal',
-        message: `Halo Kulateam, Owner telah membuat jadwal bekerja anda untuk bulan ${format(new Date(allDates[3]), 'MMMM yyyy', { locale: id })}. Harap untuk selalu memperhatikan jadwal dan tugas harian anda. Silakan cek di menu Jadwal untuk informasi selengkapnya.`,
-        was_read: false,
-        created_at: new Date(),
-      };
+      // Kirim notifikasi hanya jika ada jadwal baru yang dibuat
+      if (createdSchedules.find((s) => s.employee_id === employee.id)) {
+        const dataNotification = {
+          employee_id: employee.id,
+          type: 'Jadwal',
+          message: `Halo Kulateam, Owner telah membuat jadwal bekerja anda untuk bulan ${format(
+            new Date(allDates[0]),
+            'MMMM yyyy',
+            { locale: id },
+          )}. Harap untuk selalu memperhatikan jadwal dan tugas harian anda. Silakan cek di menu Jadwal untuk informasi selengkapnya.`,
+          was_read: false,
+          created_at: new Date(),
+        };
 
-      await this.notificationService.create(dataNotification);
+        await this.notificationService.create(dataNotification);
+      }
     }
 
     return createdSchedules.map(this.toScheduleResponse);

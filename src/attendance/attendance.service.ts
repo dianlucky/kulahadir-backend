@@ -92,7 +92,7 @@ export class AttendanceService {
     const [hours, minutes] = startTimeStr.split(':').map(Number);
 
     const startTime = new Date(today);
-    startTime.setHours(hours, minutes, 0, 0);
+    startTime.setHours(hours, minutes + 15, 0, 0);
 
     const checkInTime = new Date(request.check_in);
 

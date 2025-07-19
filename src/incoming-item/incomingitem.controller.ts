@@ -17,7 +17,7 @@ import {
   CreateIncomingItemRequest,
   IncomingItemResponse,
   UpdateIncomingItemRequest,
-} from 'src/model/incomingitem';
+} from 'src/model/incomingitem.model';
 
 @Controller('/api/incoming-items')
 export class IncomingItemController {
@@ -65,7 +65,7 @@ export class IncomingItemController {
   async remove(
     @Param('incomingId', ParseIntPipe) incomingId: number,
   ): Promise<WebResponse<boolean>> {
-   await this.incomingItemService.remove(incomingId);
+    await this.incomingItemService.remove(incomingId);
     return {
       data: true,
     };

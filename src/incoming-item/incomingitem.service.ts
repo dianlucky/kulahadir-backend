@@ -6,7 +6,7 @@ import {
   CreateIncomingItemRequest,
   IncomingItemResponse,
   UpdateIncomingItemRequest,
-} from 'src/model/incomingitem';
+} from 'src/model/incomingitem.model';
 import { IncomingItemValidation } from './incomingitem.validation';
 
 @Injectable()

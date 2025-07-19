@@ -128,7 +128,7 @@ export class AttendanceService {
     if (result && attendanceStatus == 'Late') {
       const dataNotification = {
         employee_id: result.schedule.employee_id,
-        type: 'Absensi',
+        type: 'Kehadiran',
         message: `Halo Kulateam, sepertinya Anda terlambat hari ini (Jam check in ${format(result.check_in, 'HH:mm', { locale: id })}). Mohon untuk lebih memperhatikan kedisiplinan, karena hal ini dapat memengaruhi penilaian owner terhadap kinerja Anda`,
         was_read: false,
         created_at: new Date(),
@@ -151,7 +151,7 @@ export class AttendanceService {
       const notifyAdmins = targetEmployees.map((admin) =>
         this.notificationService.create({
           employee_id: admin.id,
-          type: `Pengajuan baru`,
+          type: `Kehadiran`,
           message: `Sepertinya pegawai anda (${result.schedule.employee.name}) terlambat hari ini (Jam check in ${format(result.check_in, 'HH:mm', { locale: id })}).`,
           was_read: false,
           created_at: new Date(),
@@ -206,7 +206,7 @@ export class AttendanceService {
 
       const dataNotification = {
         employee_id: result.schedule.employee_id,
-        type: 'Absensi',
+        type: 'Kehadiran',
         message: `Terima kasih telah melakukan absensi hari ini. Tetap semangat, dan mohon untuk selalu menjaga kedisiplinan. Silakan beristirahat, dan tetap jaga semangat Anda!`,
         was_read: false,
         created_at: new Date(),

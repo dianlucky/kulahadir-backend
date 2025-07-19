@@ -86,13 +86,13 @@ export class AttendanceService {
     if (!schedule) {
       throw new Error('Schedule not found');
     }
+    // const today = new Date();
 
     const startTimeStr = schedule.start_time;
-    const today = new Date();
     const [hours, minutes] = startTimeStr.split(':').map(Number);
 
-    const startTime = new Date(today);
-    startTime.setHours(hours, minutes + 15, 0, 0);
+    const startTime = new Date();
+    startTime.setHours(hours, minutes + 16, 0, 0);
 
     const checkInTime = new Date(request.check_in);
 
@@ -102,6 +102,7 @@ export class AttendanceService {
       ...request,
       status: 'Working',
     };
+
 
     const result = await this.prismaService.attendance.create({
       data,

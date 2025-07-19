@@ -12,6 +12,9 @@ import { CashAdvanceModule } from './cash-advance/cashadvance.module';
 import { TaskEmployeeModule } from './task-employee/taskemployee.module';
 import { AuthModule } from './auth/auth.module';
 import { NotificationModule } from './notification/notification.module';
+import { CategoryModule } from './category/category.module';
+import { ItemModule } from './item/item.module';
+import { IncomingItemModule } from './incoming-item/incomingitem.module';
 
 @Module({
   imports: [
@@ -28,6 +31,9 @@ import { NotificationModule } from './notification/notification.module';
     CashAdvanceModule,
     TaskEmployeeModule,
     NotificationModule,
+    CategoryModule,
+    ItemModule,
+    IncomingItemModule,
   ],
   controllers: [],
   providers: [],

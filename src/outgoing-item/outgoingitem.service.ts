@@ -63,7 +63,10 @@ export class OutgoingItemService {
       include: {
         employee: true,
       },
-      data: validatedData,
+      data: {
+        ...validatedData,
+        created_at: new Date(),
+      },
     });
 
     return this.toOutgoingItemResponse(result);

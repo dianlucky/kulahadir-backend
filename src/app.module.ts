@@ -15,6 +15,7 @@ import { NotificationModule } from './notification/notification.module';
 import { CategoryModule } from './category/category.module';
 import { ItemModule } from './item/item.module';
 import { IncomingItemModule } from './incoming-item/incomingitem.module';
+import { OutgoingItemModule } from './outgoing-item/outgoingitem.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { IncomingItemModule } from './incoming-item/incomingitem.module';
     CategoryModule,
     ItemModule,
     IncomingItemModule,
+    OutgoingItemModule,
   ],
   controllers: [],
   providers: [],

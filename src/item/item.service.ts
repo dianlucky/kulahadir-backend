@@ -41,6 +41,9 @@ export class ItemService {
       where: {
         id: itemId,
       },
+      include: {
+        category: true,
+      },
     });
 
     if (!result) {
@@ -66,6 +69,11 @@ export class ItemService {
     });
 
     return this.toItemResponse(item);
+  }
+
+  async getById(itemId: number): Promise<ItemResponse> {
+    const result = await this.checkItemMustBeExists(itemId);
+    return this.toItemResponse(result);
   }
 
   async getAll(): Promise<ItemResponse[]> {

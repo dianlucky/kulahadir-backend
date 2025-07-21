@@ -17,6 +17,7 @@ import { ItemModule } from './item/item.module';
 import { IncomingItemModule } from './incoming-item/incomingitem.module';
 import { OutgoingItemModule } from './outgoing-item/outgoingitem.module';
 import { IncomingDetailModule } from './incoming-detail/incomingdetail.module';
+import { OutgoingDetailModule } from './outgoing-detail/outgoingdetail.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { IncomingDetailModule } from './incoming-detail/incomingdetail.module';
     IncomingItemModule,
     OutgoingItemModule,
     IncomingDetailModule,
+    OutgoingDetailModule,
   ],
   controllers: [],
   providers: [],

@@ -47,7 +47,7 @@ export class CategoryController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch()
+  @Patch(':categoryId')
   @HttpCode(200)
   async update(
     @Param('categoryId', ParseIntPipe) categoryId: number,

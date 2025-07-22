@@ -38,6 +38,30 @@ export class CategoryService {
     return result;
   }
 
+  async checkCategoryWithSameNameAndCode(
+    data: CreateCategoryRequest,
+    categoryId?: number,
+  ) {
+    return this.prismaService.category.count({
+      where: {
+        AND: [
+          {
+            OR: [{ name: data.name }, { code: data.code }],
+          },
+          ...(categoryId !== undefined
+            ? [
+                {
+                  NOT: {
+                    id: categoryId,
+                  },
+                },
+              ]
+            : []),
+        ],
+      },
+    });
+  }
+
   async create(request: CreateCategoryRequest): Promise<CategoryResponse> {
     const validatedData = this.validationService.validate(
       CategoryValidation.CREATE,
@@ -45,14 +69,10 @@ export class CategoryService {
     ) as CreateCategoryRequest;
 
     const totalCategoryWithSameName: any =
-      await this.prismaService.category.count({
-        where: {
-          name: validatedData.name,
-        },
-      });
+      await this.checkCategoryWithSameNameAndCode(validatedData);
 
     if (totalCategoryWithSameName != 0) {
-      throw new HttpException('Category name already exists', 400);
+      throw new HttpException('Kode kategori atau nama sudah digunakan', 400);
     }
 
     const result = await this.prismaService.category.create({
@@ -77,6 +97,13 @@ export class CategoryService {
       request,
     );
 
+    const totalCategoryWithSameName: any =
+      await this.checkCategoryWithSameNameAndCode(validatedData, categoryId);
+
+    if (totalCategoryWithSameName != 0) {
+      throw new HttpException('Kode kategori atau nama sudah digunakan', 400);
+    }
+
     const result = await this.prismaService.category.update({
       where: {
         id: categoryId,
@@ -89,6 +116,16 @@ export class CategoryService {
 
   async remove(categoryId: number): Promise<CategoryResponse> {
     await this.checkCategoryIsExists(categoryId);
+    const isUsed = await this.prismaService.item.findMany({
+      where: {
+        category_id: categoryId,
+      },
+    });
+
+    if (isUsed.length != 0) {
+      throw new HttpException('Category sedang digunakan', 400);
+    }
+
     const result = await this.prismaService.category.delete({
       where: {
         id: categoryId,

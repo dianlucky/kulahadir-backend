@@ -53,13 +53,37 @@ export class ItemService {
     return result;
   }
 
-  async create(request: CreateItemRequest): Promise<ItemResponse> {
-    await this.categoryService.checkCategoryIsExists(request.category_id);
+  async checkUniqueNameAndCode(data: UpdateItemRequest, itemId?: number) {
+    return this.prismaService.item.count({
+      where: {
+        AND: [
+          {
+            OR: [{ name: data.name }, { code: data.code }],
+          },
+          ...(itemId !== undefined
+            ? [
+                {
+                  NOT: {
+                    id: itemId,
+                  },
+                },
+              ]
+            : []),
+        ],
+      },
+    });
+  }
 
+  async create(request: CreateItemRequest): Promise<ItemResponse> {
     const validatedData = this.validationService.validate(
       ItemValidation.CREATE,
       request,
     );
+    await this.categoryService.checkCategoryIsExists(validatedData.category_id);
+    const checkUnique = await this.checkUniqueNameAndCode(validatedData);
+    if (checkUnique != 0) {
+      throw new HttpException('Kode barang atau nama sudah digunakan', 400);
+    }
 
     const item = await this.prismaService.item.create({
       data: validatedData,
@@ -69,6 +93,26 @@ export class ItemService {
     });
 
     return this.toItemResponse(item);
+  }
+
+  async getByCategory(category: string): Promise<ItemResponse[]> {
+    const isFrozen = category === 'frozen' || category === 'Frozen';
+    const result = await this.prismaService.item.findMany({
+      where: {
+        category: {
+          name: isFrozen
+            ? 'Frozen'
+            : {
+                not: 'Frozen',
+              },
+        },
+      },
+      include: {
+        category: true,
+      },
+    });
+
+    return result.map(this.toItemResponse);
   }
 
   async getById(itemId: number): Promise<ItemResponse> {

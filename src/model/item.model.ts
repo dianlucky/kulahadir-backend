@@ -21,7 +21,7 @@ export class CreateItemRequest {
 export class UpdateItemRequest {
   code?: string;
   name?: string;
-  stock?: number;
   image?: string;
+  stock?: number;
   category_id?: number;
 }

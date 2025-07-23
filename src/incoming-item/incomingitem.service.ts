@@ -8,12 +8,15 @@ import {
   UpdateIncomingItemRequest,
 } from 'src/model/incomingitem.model';
 import { IncomingItemValidation } from './incomingitem.validation';
+import { IncomingDetailService } from 'src/incoming-detail/incomingdetail.service';
+import { IncomingDetailResponse } from 'src/model/incomingdetail.model';
 
 @Injectable()
 export class IncomingItemService {
   constructor(
     private prismaService: PrismaService,
     private validationService: ValidationService,
+    private detailService: IncomingDetailService,
   ) {}
 
   toIncomingItemResponse(
@@ -79,6 +82,62 @@ export class IncomingItemService {
       },
     });
     return results.map((result) => this.toIncomingItemResponse(result));
+  }
+
+  async getByDate(
+    dateString: string,
+  ): Promise<(IncomingItemResponse & { details: IncomingDetailResponse[] })[]> {
+    const date = new Date(dateString);
+
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // 1. Ambil incomingItem
+    const incomingItems = await this.prismaService.incomingItem.findMany({
+      where: {
+        created_at: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      include: {
+        employee: true,
+      },
+    });
+
+    const incomingIds = incomingItems.map((item) => item.id);
+    if (incomingIds.length === 0) return [];
+
+    // 2. Ambil incomingDetail berdasarkan incoming_id
+    const incomingDetails = await this.prismaService.incomingDetail.findMany({
+      where: {
+        incoming_id: { in: incomingIds },
+      },
+      include: {
+        item: {
+          include: {
+            category: true,
+          },
+        },
+        employee: true,
+        incoming_item: true,
+      },
+    });
+
+    // 3. Gabungkan response
+    return incomingItems.map((incomingItem) => {
+      const details = incomingDetails
+        .filter((detail) => detail.incoming_id === incomingItem.id)
+        .map((detail) => this.detailService.toIncomingDetailResponse(detail));
+
+      return {
+        ...this.toIncomingItemResponse(incomingItem),
+        details,
+      };
+    });
   }
 
   async update(

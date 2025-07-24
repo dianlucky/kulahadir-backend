@@ -140,7 +140,6 @@ export class IncomingItemService {
     });
   }
 
-  async 
 
   async update(
     incomingId: number,

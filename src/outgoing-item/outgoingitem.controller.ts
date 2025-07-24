@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { OutgoingItemService } from './outgoingitem.service';
@@ -18,6 +19,7 @@ import {
 } from 'src/model/outgoingitem.model';
 import { WebResponse } from 'src/model/web.model';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { OutgoingDetailResponse } from 'src/model/outgoingdetail.model';
 
 @Controller('/api/outgoing-items')
 export class OutgoingItemController {
@@ -41,6 +43,22 @@ export class OutgoingItemController {
   @HttpCode(200)
   async getAll(): Promise<WebResponse<OutgoingItemResponse[]>> {
     const result = await this.outgoingItemService.getAll();
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('by-date')
+  @HttpCode(200)
+  async getByDate(
+    @Query('dateString') dateString: string,
+  ): Promise<
+    WebResponse<
+      (OutgoingItemResponse & { details: OutgoingDetailResponse[] })[]
+    >
+  > {
+    const result = await this.outgoingItemService.getByDate(dateString);
     return {
       data: result,
     };

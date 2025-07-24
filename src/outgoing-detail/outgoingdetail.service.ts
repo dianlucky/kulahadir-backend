@@ -136,6 +136,8 @@ export class OutgoingDetailService {
     return results.map((result) => this.toOutgoingDetailResponse(result));
   }
 
+  
+
   async update(
     detailId: number,
     request: UpdateOutgoingDetailRequest,

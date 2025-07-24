@@ -140,6 +140,8 @@ export class IncomingItemService {
     });
   }
 
+  async 
+
   async update(
     incomingId: number,
     request: UpdateIncomingItemRequest,
@@ -160,6 +162,7 @@ export class IncomingItemService {
 
   async remove(incomingId: number): Promise<IncomingItemResponse> {
     await this.checkIncomingItemMustExists(incomingId);
+    await this.detailService.removeByIncomingId(incomingId);
     const result = await this.prismaService.incomingItem.delete({
       where: {
         id: incomingId,

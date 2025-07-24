@@ -36,6 +36,20 @@ export class IncomingDetailController {
     };
   }
 
+
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/by-incomingId')
+  @HttpCode(200)
+  async getByIncomingId(
+    @Query('incomingId', ParseIntPipe) incomingId: number,
+  ): Promise<WebResponse<IncomingDetailResponse[]>> {
+    const result = await this.incomingDetailService.getByIncomingId(incomingId);
+    return {
+      data: result,
+    };
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get()
   @HttpCode(200)

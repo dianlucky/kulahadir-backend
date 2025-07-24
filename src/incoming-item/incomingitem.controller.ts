@@ -48,6 +48,21 @@ export class IncomingItemController {
     };
   }
 
+  // @UseGuards(JwtAuthGuard)
+  // @Get(':id')
+  // @HttpCode(200)
+  // async getById(
+  //   @Param('id', ParseIntPipe) id: number,
+  // ): Promise<
+  //   WebResponse<
+  //     (IncomingItemResponse & { details: IncomingDetailResponse[] })[]
+  //   >
+  // > {
+  //   const result = await this.incomingItemService.getById(id);
+  //   return {
+  //     data: result,
+  //   };
+  // }
   @UseGuards(JwtAuthGuard)
   @Get('by-date')
   @HttpCode(200)

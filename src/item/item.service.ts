@@ -25,6 +25,7 @@ export class ItemService {
       name: item.name,
       stock: item.stock,
       image: item.image,
+      status: item.status,
       category_id: item.category_id,
       category: item.category
         ? {
@@ -106,6 +107,7 @@ export class ItemService {
                 not: 'Frozen',
               },
         },
+        status : 'aktif'
       },
       include: {
         category: true,
@@ -160,6 +162,24 @@ export class ItemService {
     });
 
     return this.toItemResponse(item);
+  }
+
+  async tempRemove(itemId: number): Promise<ItemResponse> {
+    await this.checkItemMustBeExists(itemId);
+    const result = await this.prismaService.item.update({
+      where: {
+        id: itemId,
+
+      },
+      include: {
+        category: true,
+      },
+      data: {
+        status: 'inactive',
+      },
+    });
+
+    return this.toItemResponse(result);
   }
 
   async remove(itemId: number): Promise<ItemResponse> {

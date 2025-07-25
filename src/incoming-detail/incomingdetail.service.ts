@@ -43,6 +43,7 @@ export class IncomingDetailService {
             name: incomingDetail.item.name,
             stock: incomingDetail.item.stock,
             image: incomingDetail.item.image,
+            status: incomingDetail.item.status,
             category_id: incomingDetail.item.category_id,
             category: incomingDetail.item.category
               ? {
@@ -199,12 +200,31 @@ export class IncomingDetailService {
       },
     });
 
-    if (details.length == 0) {
+    if (details.length === 0) {
       throw new HttpException('Detail tidak ditemukan', 400);
     }
 
-    for (const detail of details) {
-      await this.remove(detail.id);
+    console.log('data details', details);
+
+    // Jalankan semua remove dalam Promise.all
+    const errors: string[] = [];
+
+    await Promise.all(
+      details.map(async (detail) => {
+        try {
+          await this.remove(detail.id);
+        } catch (err) {
+          console.error(`Gagal hapus detail ID ${detail.id}:`, err.message);
+          errors.push(`Detail ID ${detail.id}: ${err.message}`);
+        }
+      }),
+    );
+
+    if (errors.length > 0) {
+      throw new HttpException(
+        `Beberapa detail gagal dihapus: \n${errors.join('\n')}`,
+        400,
+      );
     }
 
     return true;

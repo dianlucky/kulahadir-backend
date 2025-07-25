@@ -24,7 +24,7 @@ export class ItemValidation {
   static readonly UPDATE: ZodType = z.object({
     code: z.string().max(100).optional(),
     name: z.string().max(100).optional(),
-    stock: z.number().positive().optional(),
+    stock: z.number().min(0).optional(),
     category_id: z.number().positive().optional(),
     image: z.string().optional(),
   });

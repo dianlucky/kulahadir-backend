@@ -135,15 +135,34 @@ export class ItemController {
     };
   }
 
+  // @UseGuards(JwtAuthGuard)
+  // @Patch('/temp-remove/:itemId')
+  // @HttpCode(200)
+  // async tempRemove(
+  //   @Param('itemId', ParseIntPipe) itemId: number,
+  // ): Promise<WebResponse<ItemResponse>> {}
+
   @UseGuards(JwtAuthGuard)
   @Delete(':itemId')
   @HttpCode(200)
   async remove(
     @Param('itemId', ParseIntPipe) itemId: number,
-  ): Promise<WebResponse<boolean>> {
-    await this.itemService.remove(itemId);
+  ): Promise<WebResponse<ItemResponse>> {
+    console.log(itemId);
+    const result = await this.itemService.tempRemove(itemId);
     return {
-      data: true,
+      data: result,
     };
   }
+  // @UseGuards(JwtAuthGuard)
+  // @Delete(':itemId')
+  // @HttpCode(200)
+  // async remove(
+  //   @Param('itemId', ParseIntPipe) itemId: number,
+  // ): Promise<WebResponse<boolean>> {
+  //   await this.itemService.remove(itemId);
+  //   return {
+  //     data: true,
+  //   };
+  // }
 }

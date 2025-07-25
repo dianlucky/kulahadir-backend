@@ -48,7 +48,6 @@ export class IncomingItemController {
     };
   }
 
-
   @UseGuards(JwtAuthGuard)
   @Get('by-date')
   @HttpCode(200)
@@ -84,6 +83,7 @@ export class IncomingItemController {
   async remove(
     @Param('incomingId', ParseIntPipe) incomingId: number,
   ): Promise<WebResponse<boolean>> {
+    // console.log('IncomingID: ', incomingId);
     await this.incomingItemService.remove(incomingId);
     return {
       data: true,

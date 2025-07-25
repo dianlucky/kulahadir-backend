@@ -6,6 +6,7 @@ export class ItemResponse {
   name: string;
   stock: number;
   image: string | null;
+  status: string;
   category_id: number;
   category?: CategoryResponse;
 }

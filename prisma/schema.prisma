@@ -186,6 +186,7 @@ model Item {
   name         String  @db.VarChar(255)
   stock        Int     @db.Int()
   image        String? @db.VarChar(255)
+  status       String  @default("aktif") @db.VarChar(50)
   category_id  Int
 
   category         Category         @relation(fields: [category_id], references: [id])

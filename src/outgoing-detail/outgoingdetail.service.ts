@@ -43,6 +43,7 @@ export class OutgoingDetailService {
             name: outgoingDetail.item.name,
             stock: outgoingDetail.item.stock,
             image: outgoingDetail.item.image,
+            status: outgoingDetail.item.status,
             category_id: outgoingDetail.item.category_id,
             category: outgoingDetail.item.category
               ? {

@@ -55,7 +55,7 @@ export class IncomingItemService {
   }
 
   async create(
-    request: CreateIncomingItemRequest,
+    request: CreateIncomingItemRequest, 
   ): Promise<IncomingItemResponse> {
     const validatedData = await this.validationService.validate(
       IncomingItemValidation.CREATE,

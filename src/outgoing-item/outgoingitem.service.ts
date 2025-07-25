@@ -162,7 +162,7 @@ export class OutgoingItemService {
 
   async remove(outgoingId: number): Promise<OutgoingItemResponse> {
     await this.checkOutgoingItemMustExists(outgoingId);
-
+    await this.detailService.removeByOutgoingId(outgoingId);
     const result = await this.prismaService.outgoingItem.delete({
       where: {
         id: outgoingId,

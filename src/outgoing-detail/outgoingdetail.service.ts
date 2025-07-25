@@ -117,6 +117,24 @@ export class OutgoingDetailService {
     return this.toOutgoingDetailResponse(result);
   }
 
+  async getByOutgoingId(id: number): Promise<OutgoingDetailResponse[]> {
+    const results = await this.prismaService.outgoingDetail.findMany({
+      where: {
+        outgoing_id: id,
+      },
+      include: {
+        employee: true,
+        outgoing_item: true,
+        item: {
+          include: {
+            category: true,
+          },
+        },
+      },
+    });
+    return results.map((result) => this.toOutgoingDetailResponse(result));
+  }
+
   async getByItemId(itemId: number): Promise<OutgoingDetailResponse[]> {
     const results = await this.prismaService.outgoingDetail.findMany({
       where: {
@@ -135,8 +153,6 @@ export class OutgoingDetailService {
 
     return results.map((result) => this.toOutgoingDetailResponse(result));
   }
-
-  
 
   async update(
     detailId: number,
@@ -174,6 +190,24 @@ export class OutgoingDetailService {
     }
 
     return this.toOutgoingDetailResponse(result);
+  }
+
+  async removeByOutgoingId(outgoingId: number): Promise<boolean> {
+    const details = await this.prismaService.outgoingDetail.findMany({
+      where: {
+        outgoing_id: outgoingId,
+      },
+    });
+
+    if (details.length == 0) {
+      throw new HttpException('Detail tidak ditemukan', 400);
+    }
+
+    for (const detail of details) {
+      await this.remove(detail.id);
+    }
+
+    return true;
   }
 
   async remove(detailId: number): Promise<OutgoingDetailResponse> {

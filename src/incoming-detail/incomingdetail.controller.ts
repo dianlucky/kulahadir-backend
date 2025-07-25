@@ -51,7 +51,7 @@ export class IncomingDetailController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('/by-itemId')
   @HttpCode(200)
   async getByItemId(
     @Query('itemId', ParseIntPipe) itemId: number,

@@ -38,7 +38,19 @@ export class OutgoingDetailController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get('/by-outgoingId')
+  @HttpCode(200)
+  async getByOutgoingId(
+    @Query('outgoingId', ParseIntPipe) outgoingId: number,
+  ): Promise<WebResponse<OutgoingDetailResponse[]>> {
+    const result = await this.outgoingDetailService.getByOutgoingId(outgoingId);
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('by-itemId')
   @HttpCode(200)
   async getByItemId(
     @Query('itemId', ParseIntPipe) itemId: number,

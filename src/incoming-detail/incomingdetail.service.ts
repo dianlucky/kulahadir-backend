@@ -153,6 +153,7 @@ export class IncomingDetailService {
     });
     return results.map((result) => this.toIncomingDetailResponse(result));
   }
+
   async update(
     detailId: number,
     request: UpdateIncomingDetailRequest,

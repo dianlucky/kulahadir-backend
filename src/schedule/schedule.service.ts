@@ -374,6 +374,21 @@ export class ScheduleService {
     date: string,
     request: UpdateByDateEmployeeIdRequest,
   ): Promise<ScheduleResponse> {
+    const AllSchedules = await this.prismaService.schedule.findMany({
+      where: {
+        date: {
+          equals: new Date(date),
+        },
+        status: 'off',
+      },
+    });
+
+    if (AllSchedules.length != 0 && request.status == 'off') {
+      throw new HttpException(
+        'Ada pegawai lain yang sedang cuti di hari yang anda pilih',
+        400,
+      );
+    }
     const schedule = await this.prismaService.schedule.findFirst({
       where: {
         date: {

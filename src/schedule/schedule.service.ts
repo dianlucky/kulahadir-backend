@@ -104,7 +104,7 @@ export class ScheduleService {
           AND: [
             {
               status: {
-                in: ['pegawai tetap', 'part time'],
+                in: ['Pegawai tetap', 'Part time', "Pengelola Gudang", "Pengelola Frozen"],
               },
             },
             {

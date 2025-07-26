@@ -125,9 +125,13 @@ export class AccountService {
       request,
     );
 
-    if (request.password) {
-      validatedData.password = await bcrypt.hash(validatedData.password, 10);
+    if (request.password && request.password.trim() !== '') {
+      validatedData.password = await bcrypt.hash(request.password, 10);
+    } else {
+      delete validatedData.password;
     }
+    // this.logger.info(`ValidatedData ${JSON.stringify(validatedData)}`);
+    // console.log('ValidatedData :', validatedData);
 
     const updatedAccount = await this.prismaService.account.update({
       where: {

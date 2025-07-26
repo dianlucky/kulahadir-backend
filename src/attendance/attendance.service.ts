@@ -93,16 +93,16 @@ export class AttendanceService {
 
     const startTime = new Date();
     startTime.setHours(hours, minutes + 16, 0, 0);
+    const toleranceTime = new Date(startTime.getTime() + 15 * 60 * 1000);
 
     const checkInTime = new Date(request.check_in);
 
-    const attendanceStatus = checkInTime > startTime ? 'Late' : 'Working';
+    const attendanceStatus = checkInTime > toleranceTime ? 'Late' : 'Working';
 
     const data = {
       ...request,
       status: 'Working',
     };
-
 
     const result = await this.prismaService.attendance.create({
       data,

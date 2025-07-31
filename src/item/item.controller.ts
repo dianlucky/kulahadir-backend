@@ -19,6 +19,7 @@ import { WebResponse } from 'src/model/web.model';
 import {
   CreateItemRequest,
   ItemResponse,
+  ItemStatsResponse,
   UpdateItemRequest,
 } from 'src/model/item.model';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -61,6 +62,22 @@ export class ItemController {
     console.log('Validate with data:', request);
     const result = await this.itemService.create(request);
 
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/weekly-stats')
+  @HttpCode(200)
+  async getWeeklyStats(
+    @Query('itemId', ParseIntPipe) itemId: number,
+    @Query('startDateParams') startDateParams: string,
+  ): Promise<WebResponse<ItemStatsResponse[]>> {
+    const result = await this.itemService.getStatsWeekly(
+      itemId,
+      startDateParams,
+    );
     return {
       data: result,
     };
@@ -135,13 +152,6 @@ export class ItemController {
     };
   }
 
-  // @UseGuards(JwtAuthGuard)
-  // @Patch('/temp-remove/:itemId')
-  // @HttpCode(200)
-  // async tempRemove(
-  //   @Param('itemId', ParseIntPipe) itemId: number,
-  // ): Promise<WebResponse<ItemResponse>> {}
-
   @UseGuards(JwtAuthGuard)
   @Delete(':itemId')
   @HttpCode(200)
@@ -154,15 +164,4 @@ export class ItemController {
       data: result,
     };
   }
-  // @UseGuards(JwtAuthGuard)
-  // @Delete(':itemId')
-  // @HttpCode(200)
-  // async remove(
-  //   @Param('itemId', ParseIntPipe) itemId: number,
-  // ): Promise<WebResponse<boolean>> {
-  //   await this.itemService.remove(itemId);
-  //   return {
-  //     data: true,
-  //   };
-  // }
 }

@@ -28,3 +28,5 @@ export class UpdateIncomingDetailRequest {
   employee_id?: number;
   incoming_id?: number;
 }
+
+

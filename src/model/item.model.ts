@@ -26,3 +26,17 @@ export class UpdateItemRequest {
   stock?: number;
   category_id?: number;
 }
+
+export class ItemStatsParams {
+  itemId: number;
+  type: 'incoming' | 'outgoing';
+  period: 'week' | 'month' | 'year';
+  year: string;
+  month?: string;
+}
+
+export class ItemStatsResponse {
+  date?: string;
+  incoming?: number;
+  outgoing?: number;
+}

@@ -5,10 +5,13 @@ import { ValidationService } from '../common/validation.service';
 import {
   CreateItemRequest,
   ItemResponse,
+  ItemStatsParams,
+  ItemStatsResponse,
   UpdateItemRequest,
 } from '../model/item.model';
 import { ItemValidation } from './item.validation';
 import { PrismaService } from 'src/common/prisma.service';
+import { addDays, format, parseISO, startOfWeek, subDays } from 'date-fns';
 
 @Injectable()
 export class ItemService {
@@ -107,7 +110,7 @@ export class ItemService {
                 not: 'Frozen',
               },
         },
-        status : 'aktif'
+        status: 'aktif',
       },
       include: {
         category: true,
@@ -120,6 +123,63 @@ export class ItemService {
   async getById(itemId: number): Promise<ItemResponse> {
     const result = await this.checkItemMustBeExists(itemId);
     return this.toItemResponse(result);
+  }
+
+  async getStatsWeekly(
+    itemId: number,
+    startDateParams: string,
+  ): Promise<ItemStatsResponse[]> {
+    await this.checkItemMustBeExists(itemId);
+    const endDate = parseISO(startDateParams);
+    const startDate = subDays(endDate, 6);
+    const result: { date: string; Masuk: number; Keluar: number }[] = [];
+
+    const incomingData = await this.prismaService.incomingDetail.findMany({
+      where: {
+        item_id: itemId,
+        created_at: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        item: true,
+      },
+    });
+
+    const outgoingData = await this.prismaService.outgoingDetail.findMany({
+      where: {
+        item_id: itemId,
+        created_at: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        item: true,
+      },
+    });
+
+    for (let i = 0; i <= 6; i++) {
+      const currentDate = addDays(startDate, i);
+      const dateString = format(currentDate, 'dd');
+
+      const masuk = incomingData
+        .filter((d) => format(d.created_at, 'yyyy-MM-dd') === dateString)
+        .reduce((sum, curr) => sum + curr.amount, 0);
+
+      const keluar = outgoingData
+        .filter((d) => format(d.created_at, 'yyyy-MM-dd') === dateString)
+        .reduce((sum, curr) => sum + curr.amount, 0);
+
+      result.push({
+        date: dateString,
+        Masuk: masuk,
+        Keluar: keluar,
+      });
+    }
+
+    return result;
   }
 
   async getAll(): Promise<ItemResponse[]> {
@@ -169,7 +229,6 @@ export class ItemService {
     const result = await this.prismaService.item.update({
       where: {
         id: itemId,
-
       },
       include: {
         category: true,

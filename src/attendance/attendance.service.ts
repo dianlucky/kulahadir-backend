@@ -92,9 +92,8 @@ export class AttendanceService {
     const [hours, minutes] = startTimeStr.split(':').map(Number);
 
     const startTime = new Date();
-    // startTime.setHours(hours, minutes + 16, 0, 0);
-    const toleranceTime = new Date(startTime.getTime() + 15 * 60 * 1000);
-    console.log('toleransi Waktu: ', toleranceTime);
+    startTime.setHours(hours, minutes + 0, 0, 0);
+    const toleranceTime = new Date(startTime.getTime() + 16 * 60 * 1000);
     const checkInTime = new Date(request.check_in);
 
     const attendanceStatus = checkInTime > toleranceTime ? 'Late' : 'Working';

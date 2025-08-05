@@ -5,13 +5,19 @@ import { ValidationService } from '../common/validation.service';
 import {
   CreateItemRequest,
   ItemResponse,
-  ItemStatsParams,
   ItemStatsResponse,
   UpdateItemRequest,
 } from '../model/item.model';
 import { ItemValidation } from './item.validation';
 import { PrismaService } from 'src/common/prisma.service';
-import { addDays, format, parseISO, startOfWeek, subDays } from 'date-fns';
+import {
+  addDays,
+  endOfDay,
+  format,
+  parseISO,
+  startOfDay,
+  subDays,
+} from 'date-fns';
 
 @Injectable()
 export class ItemService {
@@ -130,9 +136,13 @@ export class ItemService {
     startDateParams: string,
   ): Promise<ItemStatsResponse[]> {
     await this.checkItemMustBeExists(itemId);
-    const endDate = parseISO(startDateParams);
-    const startDate = subDays(endDate, 6);
+
+    const rawEnd = parseISO(startDateParams);
+    const endDate = endOfDay(rawEnd);
+    const startDate = startOfDay(subDays(rawEnd, 6));
     const result: { date: string; Masuk: number; Keluar: number }[] = [];
+    console.log('endDate : ', endDate);
+    console.log('startDate : ', startDate);
 
     const incomingData = await this.prismaService.incomingDetail.findMany({
       where: {
@@ -160,16 +170,19 @@ export class ItemService {
       },
     });
 
+    console.log('Data masuk :', incomingData);
+    console.log('Data keluar :', outgoingData);
+
     for (let i = 0; i <= 6; i++) {
       const currentDate = addDays(startDate, i);
       const dateString = format(currentDate, 'dd');
 
       const masuk = incomingData
-        .filter((d) => format(d.created_at, 'yyyy-MM-dd') === dateString)
+        .filter((d) => format(d.created_at, 'dd') === dateString)
         .reduce((sum, curr) => sum + curr.amount, 0);
 
       const keluar = outgoingData
-        .filter((d) => format(d.created_at, 'yyyy-MM-dd') === dateString)
+        .filter((d) => format(d.created_at, 'dd') === dateString)
         .reduce((sum, curr) => sum + curr.amount, 0);
 
       result.push({

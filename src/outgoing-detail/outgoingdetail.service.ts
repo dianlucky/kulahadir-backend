@@ -15,6 +15,8 @@ import {
   UpdateOutgoingDetailRequest,
 } from 'src/model/outgoingdetail.model';
 import { OutgoingDetailValidation } from './outgoingdetail.validation';
+import { ItemStatsMonthlyResponse } from 'src/model/item.model';
+import { endOfMonth, parse, startOfMonth } from 'date-fns';
 
 @Injectable()
 export class OutgoingDetailService {
@@ -153,6 +155,47 @@ export class OutgoingDetailService {
     });
 
     return results.map((result) => this.toOutgoingDetailResponse(result));
+  }
+
+  async getStatsMonthly(
+    monthParam: string,
+  ): Promise<ItemStatsMonthlyResponse[]> {
+    const parsedMonth = parse(monthParam, 'yyyy-MM', new Date());
+    const startDate = startOfMonth(parsedMonth);
+    const endDate = endOfMonth(parsedMonth);
+
+    const outgoingData = await this.prismaService.outgoingDetail.findMany({
+      where: {
+        created_at: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        item: true,
+      },
+    });
+    // Buat map untuk agregasi
+    const grouped: Record<string, number> = {};
+
+    for (const record of outgoingData) {
+      const name = record.item.name;
+      if (!grouped[name]) {
+        grouped[name] = 0;
+      }
+      grouped[name] += record.amount;
+    }
+
+    // Ubah hasil akhir jadi array
+    const result = Object.entries(grouped)
+      .map(([name, totalAmount]) => ({
+        name,
+        totalAmount,
+      }))
+      .sort((a, b) => b.totalAmount - a.totalAmount)
+      .slice(0, 10);
+
+    return result;
   }
 
   async update(

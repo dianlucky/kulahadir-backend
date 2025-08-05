@@ -20,6 +20,7 @@ import {
 } from 'src/model/outgoingdetail.model';
 import { WebResponse } from 'src/model/web.model';
 import { IncomingDetailResponse } from 'src/model/incomingdetail.model';
+import { ItemStatsMonthlyResponse } from 'src/model/item.model';
 
 @Controller('/api/outgoing-details')
 export class OutgoingDetailController {
@@ -56,6 +57,19 @@ export class OutgoingDetailController {
     @Query('itemId', ParseIntPipe) itemId: number,
   ): Promise<WebResponse<OutgoingDetailResponse[]>> {
     const result = await this.outgoingDetailService.getByItemId(itemId);
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/monthly-stats')
+  @HttpCode(200)
+  async getWeeklyStats(
+    @Query('monthParams') monthParams: string,
+  ): Promise<WebResponse<ItemStatsMonthlyResponse[]>> {
+    const result =
+      await this.outgoingDetailService.getStatsMonthly(monthParams);
     return {
       data: result,
     };

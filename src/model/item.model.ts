@@ -40,3 +40,8 @@ export class ItemStatsResponse {
   incoming?: number;
   outgoing?: number;
 }
+
+export class ItemStatsMonthlyResponse {
+  name: string;
+  totalAmount: number;
+}

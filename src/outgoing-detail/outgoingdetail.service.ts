@@ -175,7 +175,7 @@ export class OutgoingDetailService {
         item: true,
       },
     });
-    // Buat map untuk agregasi
+    
     const grouped: Record<string, number> = {};
 
     for (const record of outgoingData) {
@@ -186,7 +186,6 @@ export class OutgoingDetailService {
       grouped[name] += record.amount;
     }
 
-    // Ubah hasil akhir jadi array
     const result = Object.entries(grouped)
       .map(([name, totalAmount]) => ({
         name,

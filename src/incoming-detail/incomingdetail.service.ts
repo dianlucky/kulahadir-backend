@@ -15,6 +15,8 @@ import {
 } from 'src/model/incomingdetail.model';
 import { IncomingDetailValidation } from './incomingdetail.validation';
 import { ItemService } from 'src/item/item.service';
+import { ItemStatsMonthlyResponse } from 'src/model/item.model';
+import { endOfMonth, parse, startOfMonth } from 'date-fns';
 
 @Injectable()
 export class IncomingDetailService {
@@ -153,6 +155,46 @@ export class IncomingDetailService {
       },
     });
     return results.map((result) => this.toIncomingDetailResponse(result));
+  }
+
+  async getStatsMonthly(
+    monthParam: string,
+  ): Promise<ItemStatsMonthlyResponse[]> {
+    const parsedMonth = parse(monthParam, 'yyyy-MM', new Date());
+    const startDate = startOfMonth(parsedMonth);
+    const endDate = endOfMonth(parsedMonth);
+
+    const incomingData = await this.prismaService.incomingDetail.findMany({
+      where: {
+        created_at: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        item: true,
+      },
+    });
+
+    const grouped: Record<string, number> = {};
+
+    for (const record of incomingData) {
+      const name = record.item.name;
+      if (!grouped[name]) {
+        grouped[name] = 0;
+      }
+      grouped[name] += record.amount;
+    }
+
+    const result = Object.entries(grouped)
+      .map(([name, totalAmount]) => ({
+        name,
+        totalAmount,
+      }))
+      .sort((a, b) => b.totalAmount - a.totalAmount)
+      .slice(0, 10);
+
+    return result;
   }
 
   async update(

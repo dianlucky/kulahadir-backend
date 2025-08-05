@@ -19,6 +19,7 @@ import {
   IncomingDetailResponse,
   UpdateIncomingDetailRequest,
 } from 'src/model/incomingdetail.model';
+import { ItemStatsMonthlyResponse } from 'src/model/item.model';
 
 @Controller('/api/incoming-details/')
 export class IncomingDetailController {
@@ -35,8 +36,6 @@ export class IncomingDetailController {
       data: result,
     };
   }
-
-
 
   @UseGuards(JwtAuthGuard)
   @Get('/by-incomingId')
@@ -57,6 +56,19 @@ export class IncomingDetailController {
     @Query('itemId', ParseIntPipe) itemId: number,
   ): Promise<WebResponse<IncomingDetailResponse[]>> {
     const result = await this.incomingDetailService.getByItemId(itemId);
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/monthly-stats')
+  @HttpCode(200)
+  async getWeeklyStats(
+    @Query('monthParams') monthParams: string,
+  ): Promise<WebResponse<ItemStatsMonthlyResponse[]>> {
+    const result =
+      await this.incomingDetailService.getStatsMonthly(monthParams);
     return {
       data: result,
     };

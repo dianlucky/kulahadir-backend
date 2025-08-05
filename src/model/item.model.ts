@@ -45,3 +45,4 @@ export class ItemStatsMonthlyResponse {
   name: string;
   totalAmount: number;
 }
+

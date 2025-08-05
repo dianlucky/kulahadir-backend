@@ -14,6 +14,7 @@ import {
 import { OutgoingDetailService } from './outgoingdetail.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import {
+  AnnualOutgoingStats,
   CreateOutgoingDetailRequest,
   OutgoingDetailResponse,
   UpdateOutgoingDetailRequest,
@@ -70,6 +71,18 @@ export class OutgoingDetailController {
   ): Promise<WebResponse<ItemStatsMonthlyResponse[]>> {
     const result =
       await this.outgoingDetailService.getStatsMonthly(monthParams);
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/annual-stats')
+  @HttpCode(200)
+  async getAnnualStats(
+    @Query('yearParams') yearParams: string,
+  ): Promise<WebResponse<AnnualOutgoingStats[]>> {
+    const result = await this.outgoingDetailService.getStatsAnnual(yearParams);
     return {
       data: result,
     };

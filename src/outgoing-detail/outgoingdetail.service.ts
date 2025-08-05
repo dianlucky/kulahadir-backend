@@ -10,13 +10,22 @@ import { PrismaService } from 'src/common/prisma.service';
 import { ValidationService } from 'src/common/validation.service';
 import { ItemService } from 'src/item/item.service';
 import {
+  AnnualOutgoingStats,
   CreateOutgoingDetailRequest,
   OutgoingDetailResponse,
+  OutgoingItemStats,
   UpdateOutgoingDetailRequest,
 } from 'src/model/outgoingdetail.model';
 import { OutgoingDetailValidation } from './outgoingdetail.validation';
 import { ItemStatsMonthlyResponse } from 'src/model/item.model';
-import { endOfMonth, parse, startOfMonth } from 'date-fns';
+import {
+  endOfMonth,
+  endOfYear,
+  format,
+  parse,
+  startOfMonth,
+  startOfYear,
+} from 'date-fns';
 
 @Injectable()
 export class OutgoingDetailService {
@@ -175,7 +184,7 @@ export class OutgoingDetailService {
         item: true,
       },
     });
-    
+
     const grouped: Record<string, number> = {};
 
     for (const record of outgoingData) {
@@ -193,6 +202,81 @@ export class OutgoingDetailService {
       }))
       .sort((a, b) => b.totalAmount - a.totalAmount)
       .slice(0, 10);
+
+    return result;
+  }
+
+  async getStatsAnnual(yearParams: string): Promise<AnnualOutgoingStats[]> {
+    const parsedYear = parse(yearParams, 'yyyy', new Date());
+    const startDate = startOfYear(parsedYear);
+    const endDate = endOfYear(parsedYear);
+
+    const outgoingData = await this.prismaService.outgoingDetail.findMany({
+      where: {
+        created_at: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        item: true, // agar bisa ambil item.name
+      },
+    });
+
+    const monthlyMap = new Map<
+      string,
+      { total: number; items: Map<string, number> }
+    >();
+
+    for (const record of outgoingData) {
+      const month = format(record.created_at, 'MMMM'); // misalnya "January"
+      const itemName = record.item.name;
+      const amount = record.amount;
+
+      if (!monthlyMap.has(month)) {
+        monthlyMap.set(month, { total: 0, items: new Map() });
+      }
+
+      const monthData = monthlyMap.get(month)!;
+      monthData.total += amount;
+
+      const currentItemAmount = monthData.items.get(itemName) || 0;
+      monthData.items.set(itemName, currentItemAmount + amount);
+    }
+
+    const result: AnnualOutgoingStats[] = [];
+
+    for (const [month, data] of monthlyMap.entries()) {
+      const outgoingItems: OutgoingItemStats[] = [];
+
+      for (const [name, amount] of data.items.entries()) {
+        outgoingItems.push({ name, amount });
+      }
+
+      result.push({
+        month,
+        totalAmount: data.total,
+        data: outgoingItems,
+      });
+    }
+
+    const monthOrder = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    result.sort(
+      (a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month),
+    );
 
     return result;
   }

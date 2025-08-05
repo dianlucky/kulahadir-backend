@@ -28,3 +28,14 @@ export class UpdateOutgoingDetailRequest {
   employee_id?: number;
   outgoing_id?: number;
 }
+
+export class OutgoingItemStats {
+  name: string;
+  amount: number;
+}
+
+export class AnnualOutgoingStats {
+  month: string;
+  totalAmount: number;
+  data: OutgoingItemStats[];
+}

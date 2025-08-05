@@ -195,6 +195,20 @@ export class ItemService {
     return result;
   }
 
+  async getCount(type: string): Promise<number> {
+    const isFrozen = type === 'Frozen';
+
+    const result = await this.prismaService.item.count({
+      where: {
+        category: {
+          name: isFrozen ? 'Frozen' : { not: 'Frozen' },
+        },
+      },
+    });
+
+    return result;
+  }
+
   async getAll(): Promise<ItemResponse[]> {
     const results = await this.prismaService.item.findMany({
       include: {

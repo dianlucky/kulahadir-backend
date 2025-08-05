@@ -84,6 +84,15 @@ export class ItemController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('/count')
+  @HttpCode(200)
+  async getCount(@Query('type') type: string): Promise<WebResponse<number>> {
+    const result = await this.itemService.getCount(type);
+    return {
+      data: result,
+    };
+  }
+  @UseGuards(JwtAuthGuard)
   @Get('/by-category')
   @HttpCode(200)
   async getByCategory(

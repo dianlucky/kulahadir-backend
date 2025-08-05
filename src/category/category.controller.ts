@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
@@ -41,6 +42,18 @@ export class CategoryController {
   @HttpCode(200)
   async getAll(): Promise<WebResponse<CategoryResponse[]>> {
     const result = await this.categoryService.getAll();
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('count')
+  @HttpCode(200)
+  async getCountCategory(
+    @Query('type') type: string,
+  ): Promise<WebResponse<number>> {
+    const result = await this.categoryService.getCountCategory(type);
     return {
       data: result,
     };

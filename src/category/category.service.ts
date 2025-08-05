@@ -87,6 +87,18 @@ export class CategoryService {
     return results.map((result) => this.toCategoryResponse(result));
   }
 
+  async getCountCategory(type: string): Promise<number> {
+    const isNotFrozen = type === '!Frozen';
+
+    const result = await this.prismaService.category.count({
+      where: {
+        name: isNotFrozen ? { not: 'Frozen' } : 'Frozen',
+      },
+    });
+
+    return result;
+  }
+
   async update(
     categoryId: number,
     request: UpdateCategoryRequest,

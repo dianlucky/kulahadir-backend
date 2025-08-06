@@ -29,4 +29,18 @@ export class UpdateIncomingDetailRequest {
   incoming_id?: number;
 }
 
+export class IncomingItemStats {
+  name: string;
+  amount: number;
+}
 
+export class AnnualIncomingStats {
+  month: string;
+  totalAmount: number;
+  data: IncomingItemStats[];
+}
+
+export class MonthlyIncomingStats {
+  date: string;
+  data: IncomingItemStats[];
+}

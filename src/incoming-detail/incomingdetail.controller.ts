@@ -15,8 +15,10 @@ import { IncomingDetailService } from './incomingdetail.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { WebResponse } from 'src/model/web.model';
 import {
+  AnnualIncomingStats,
   CreateIncomingDetailRequest,
   IncomingDetailResponse,
+  MonthlyIncomingStats,
   UpdateIncomingDetailRequest,
 } from 'src/model/incomingdetail.model';
 import { ItemStatsMonthlyResponse } from 'src/model/item.model';
@@ -69,6 +71,38 @@ export class IncomingDetailController {
   ): Promise<WebResponse<ItemStatsMonthlyResponse[]>> {
     const result =
       await this.incomingDetailService.getStatsMonthly(monthParams);
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/annual-stats')
+  @HttpCode(200)
+  async getAnnualStats(
+    @Query('type') type: string,
+    @Query('yearParams') yearParams: string,
+  ): Promise<WebResponse<AnnualIncomingStats[]>> {
+    const result = await this.incomingDetailService.getStatsAnnual(
+      type,
+      yearParams,
+    );
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/daily-month-stats')
+  @HttpCode(200)
+  async getStatsDailyPerMonth(
+    @Query('type') type: string,
+    @Query('monthParams') monthParams: string,
+  ): Promise<WebResponse<MonthlyIncomingStats[]>> {
+    const result = await this.incomingDetailService.getStatsDailyPerMonth(
+      type,
+      monthParams,
+    );
     return {
       data: result,
     };

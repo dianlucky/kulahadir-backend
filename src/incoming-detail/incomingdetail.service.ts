@@ -9,14 +9,24 @@ import {
 import { PrismaService } from 'src/common/prisma.service';
 import { ValidationService } from 'src/common/validation.service';
 import {
+  AnnualIncomingStats,
   CreateIncomingDetailRequest,
   IncomingDetailResponse,
+  IncomingItemStats,
+  MonthlyIncomingStats,
   UpdateIncomingDetailRequest,
 } from 'src/model/incomingdetail.model';
 import { IncomingDetailValidation } from './incomingdetail.validation';
 import { ItemService } from 'src/item/item.service';
 import { ItemStatsMonthlyResponse } from 'src/model/item.model';
-import { endOfMonth, parse, startOfMonth } from 'date-fns';
+import {
+  endOfMonth,
+  endOfYear,
+  format,
+  parse,
+  startOfMonth,
+  startOfYear,
+} from 'date-fns';
 
 @Injectable()
 export class IncomingDetailService {
@@ -194,6 +204,149 @@ export class IncomingDetailService {
       }))
       .sort((a, b) => b.totalAmount - a.totalAmount)
       .slice(0, 10);
+
+    return result;
+  }
+
+  async getStatsAnnual(
+    type: string,
+    yearParams: string,
+  ): Promise<AnnualIncomingStats[]> {
+    const isFrozen = type == 'Frozen';
+    const parsedYear = parse(yearParams, 'yyyy', new Date());
+    const startDate = startOfYear(parsedYear);
+    const endDate = endOfYear(parsedYear);
+
+    const incomingData = await this.prismaService.incomingDetail.findMany({
+      where: {
+        created_at: {
+          gte: startDate,
+          lte: endDate,
+        },
+        item: {
+          category: {
+            name: isFrozen ? 'Frozen' : { not: 'Frozen' },
+          },
+        },
+      },
+      include: {
+        item: true,
+      },
+    });
+
+    const monthlyMap = new Map<
+      string,
+      { total: number; items: Map<string, number> }
+    >();
+
+    for (const record of incomingData) {
+      const month = format(record.created_at, 'MMMM');
+      const itemName = record.item.name;
+      const amount = record.amount;
+
+      if (!monthlyMap.has(month)) {
+        monthlyMap.set(month, { total: 0, items: new Map() });
+      }
+
+      const monthData = monthlyMap.get(month)!;
+      monthData.total += amount;
+
+      const currentItemAmount = monthData.items.get(itemName) || 0;
+      monthData.items.set(itemName, currentItemAmount + amount);
+    }
+
+    const result: AnnualIncomingStats[] = [];
+
+    for (const [month, data] of monthlyMap.entries()) {
+      const incomingItems: IncomingItemStats[] = [];
+
+      for (const [name, amount] of data.items.entries()) {
+        incomingItems.push({ name, amount });
+      }
+
+      result.push({
+        month,
+        totalAmount: data.total,
+        data: incomingItems,
+      });
+    }
+
+    const monthOrder = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    result.sort(
+      (a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month),
+    );
+
+    return result;
+  }
+
+  async getStatsDailyPerMonth(
+    type: string,
+    monthParams: string,
+  ): Promise<MonthlyIncomingStats[]> {
+    const isFrozen = type === 'Frozen';
+    const parsedMonth = parse(monthParams, 'yyyy-MM', new Date());
+    const startDate = startOfMonth(parsedMonth);
+    const endDate = endOfMonth(parsedMonth);
+
+    const incomingData = await this.prismaService.incomingDetail.findMany({
+      where: {
+        created_at: {
+          gte: startDate,
+          lte: endDate,
+        },
+        item: {
+          category: {
+            name: isFrozen ? 'Frozen' : { not: 'Frozen' },
+          },
+        },
+      },
+      include: {
+        item: true,
+      },
+    });
+
+    const dailyMap = new Map<string, { items: Map<string, number> }>();
+    for (const data of incomingData) {
+      const date = format(data.created_at, 'dd');
+      const itemName = data.item.name;
+      const amount = data.amount;
+
+      if (!dailyMap.has(date)) {
+        dailyMap.set(date, { items: new Map() });
+      }
+
+      const dailyData = dailyMap.get(date)!;
+      const currentItemAmount = dailyData.items.get(itemName) || 0;
+      dailyData.items.set(itemName, currentItemAmount + amount);
+    }
+
+    const result: MonthlyIncomingStats[] = [];
+
+    for (const [date, record] of dailyMap.entries()) {
+      const incomingItems: IncomingItemStats[] = [];
+
+      for (const [name, amount] of record.items.entries()) {
+        incomingItems.push({ name, amount });
+      }
+
+      result.push({
+        date,
+        data: incomingItems,
+      });
+    }
 
     return result;
   }

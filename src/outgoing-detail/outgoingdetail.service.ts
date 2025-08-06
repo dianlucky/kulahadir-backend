@@ -72,6 +72,7 @@ export class OutgoingDetailService {
         ? {
             id: outgoingDetail.outgoingItem.id,
             created_at: outgoingDetail.outgoingItem.created_at,
+            isFrozen: outgoingDetail.outgoingItem.isFrozen,
             employee_id: outgoingDetail.outgoingItem.employee_id,
           }
         : undefined,

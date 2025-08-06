@@ -25,6 +25,7 @@ export class IncomingItemService {
     return {
       id: incomingItem.id,
       created_at: incomingItem.created_at,
+      isFrozen: incomingItem.isFrozen,
       employee_id: incomingItem.employee_id,
       employee: incomingItem.employee
         ? {
@@ -55,7 +56,7 @@ export class IncomingItemService {
   }
 
   async create(
-    request: CreateIncomingItemRequest, 
+    request: CreateIncomingItemRequest,
   ): Promise<IncomingItemResponse> {
     const validatedData = await this.validationService.validate(
       IncomingItemValidation.CREATE,
@@ -85,6 +86,7 @@ export class IncomingItemService {
   }
 
   async getByDate(
+    type: string,
     dateString: string,
   ): Promise<(IncomingItemResponse & { details: IncomingDetailResponse[] })[]> {
     const date = new Date(dateString);
@@ -102,6 +104,7 @@ export class IncomingItemService {
           gte: startOfDay,
           lte: endOfDay,
         },
+        isFrozen: type == 'Frozen',
       },
       include: {
         employee: true,
@@ -139,7 +142,6 @@ export class IncomingItemService {
       };
     });
   }
-
 
   async update(
     incomingId: number,

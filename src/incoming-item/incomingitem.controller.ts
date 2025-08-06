@@ -52,13 +52,14 @@ export class IncomingItemController {
   @Get('by-date')
   @HttpCode(200)
   async getByDate(
+    @Query('type') type: string,
     @Query('dateString') dateString: string,
   ): Promise<
     WebResponse<
       (IncomingItemResponse & { details: IncomingDetailResponse[] })[]
     >
   > {
-    const result = await this.incomingItemService.getByDate(dateString);
+    const result = await this.incomingItemService.getByDate(type,dateString);
     return {
       data: result,
     };

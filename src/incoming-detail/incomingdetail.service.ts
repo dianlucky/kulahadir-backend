@@ -61,6 +61,7 @@ export class IncomingDetailService {
         ? {
             id: incomingDetail.incomingItem.id,
             created_at: incomingDetail.incomingItem.created_at,
+            isFrozen: incomingDetail.incomingItem.isFrozen,
             employee_id: incomingDetail.incomingItem.employee_id,
           }
         : undefined,

@@ -25,6 +25,7 @@ export class OutgoingItemService {
     return {
       id: outgoingItem.id,
       created_at: outgoingItem.created_at,
+      isFrozen: outgoingItem.isFrozen,
       employee_id: outgoingItem.employee_id,
       employee: outgoingItem.employee
         ? {
@@ -86,6 +87,7 @@ export class OutgoingItemService {
   }
 
   async getByDate(
+    type: string,
     dateString: string,
   ): Promise<(OutgoingItemResponse & { details: OutgoingDetailResponse[] })[]> {
     const date = new Date(dateString);
@@ -99,6 +101,7 @@ export class OutgoingItemService {
     // 1. Ambil OutgoingItem
     const outgoingItems = await this.prismaService.outgoingItem.findMany({
       where: {
+        isFrozen: type == 'Frozen',
         created_at: {
           gte: startOfDay,
           lte: endOfDay,

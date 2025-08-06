@@ -199,6 +199,7 @@ model Item {
 model IncomingItem {
   id          Int             @id @default(autoincrement())
   created_at  DateTime        @db.Timestamp()
+  isFrozen    Boolean         @db.TinyInt @default(false)
   employee_id Int
 
   employee         Employee         @relation(fields: [employee_id], references: [id])
@@ -225,6 +226,7 @@ model IncomingDetail {
 model OutgoingItem {
   id          Int             @id @default(autoincrement())
   created_at  DateTime        @db.Timestamp()
+  isFrozen    Boolean         @db.TinyInt @default(false)
   employee_id Int
 
   employee         Employee         @relation(fields: [employee_id], references: [id])

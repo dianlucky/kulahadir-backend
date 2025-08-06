@@ -12,6 +12,7 @@ import { ItemService } from 'src/item/item.service';
 import {
   AnnualOutgoingStats,
   CreateOutgoingDetailRequest,
+  MonthlyOutgoingStats,
   OutgoingDetailResponse,
   OutgoingItemStats,
   UpdateOutgoingDetailRequest,
@@ -26,6 +27,7 @@ import {
   startOfMonth,
   startOfYear,
 } from 'date-fns';
+import { record } from 'zod';
 
 @Injectable()
 export class OutgoingDetailService {
@@ -206,7 +208,11 @@ export class OutgoingDetailService {
     return result;
   }
 
-  async getStatsAnnual(yearParams: string): Promise<AnnualOutgoingStats[]> {
+  async getStatsAnnual(
+    type: string,
+    yearParams: string,
+  ): Promise<AnnualOutgoingStats[]> {
+    const isFrozen = type == 'Frozen';
     const parsedYear = parse(yearParams, 'yyyy', new Date());
     const startDate = startOfYear(parsedYear);
     const endDate = endOfYear(parsedYear);
@@ -216,6 +222,11 @@ export class OutgoingDetailService {
         created_at: {
           gte: startDate,
           lte: endDate,
+        },
+        item: {
+          category: {
+            name: isFrozen ? 'Frozen' : { not: 'Frozen' },
+          },
         },
       },
       include: {
@@ -229,7 +240,7 @@ export class OutgoingDetailService {
     >();
 
     for (const record of outgoingData) {
-      const month = format(record.created_at, 'MMMM'); // misalnya "January"
+      const month = format(record.created_at, 'MMMM');
       const itemName = record.item.name;
       const amount = record.amount;
 
@@ -277,6 +288,65 @@ export class OutgoingDetailService {
     result.sort(
       (a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month),
     );
+
+    return result;
+  }
+
+  async getStatsDailyPerMonth(
+    type: string,
+    monthParams: string,
+  ): Promise<MonthlyOutgoingStats[]> {
+    const isFrozen = type === 'Frozen';
+    const parsedMonth = parse(monthParams, 'yyyy-MM', new Date());
+    const startDate = startOfMonth(parsedMonth);
+    const endDate = endOfMonth(parsedMonth);
+
+    const outgoingData = await this.prismaService.outgoingDetail.findMany({
+      where: {
+        created_at: {
+          gte: startDate,
+          lte: endDate,
+        },
+        item: {
+          category: {
+            name: isFrozen ? 'Frozen' : { not: 'Frozen' },
+          },
+        },
+      },
+      include: {
+        item: true,
+      },
+    });
+
+    const dailyMap = new Map<string, { items: Map<string, number> }>();
+    for (const data of outgoingData) {
+      const date = format(data.created_at, 'dd');
+      const itemName = data.item.name;
+      const amount = data.amount;
+
+      if (!dailyMap.has(date)) {
+        dailyMap.set(date, { items: new Map() });
+      }
+
+      const dailyData = dailyMap.get(date)!;
+      const currentItemAmount = dailyData.items.get(itemName) || 0;
+      dailyData.items.set(itemName, currentItemAmount + amount);
+    }
+
+    const result: MonthlyOutgoingStats[] = [];
+
+    for (const [date, record] of dailyMap.entries()) {
+      const outgoingItems: OutgoingItemStats[] = [];
+
+      for (const [name, amount] of record.items.entries()) {
+        outgoingItems.push({ name, amount });
+      }
+
+      result.push({
+        date,
+        data: outgoingItems,
+      });
+    }
 
     return result;
   }

@@ -16,6 +16,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import {
   AnnualOutgoingStats,
   CreateOutgoingDetailRequest,
+  MonthlyOutgoingStats,
   OutgoingDetailResponse,
   UpdateOutgoingDetailRequest,
 } from 'src/model/outgoingdetail.model';
@@ -80,9 +81,29 @@ export class OutgoingDetailController {
   @Get('/annual-stats')
   @HttpCode(200)
   async getAnnualStats(
+    @Query('type') type: string,
     @Query('yearParams') yearParams: string,
   ): Promise<WebResponse<AnnualOutgoingStats[]>> {
-    const result = await this.outgoingDetailService.getStatsAnnual(yearParams);
+    const result = await this.outgoingDetailService.getStatsAnnual(
+      type,
+      yearParams,
+    );
+    return {
+      data: result,
+    };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/daily-month-stats')
+  @HttpCode(200)
+  async getStatsDailyPerMonth(
+    @Query('type') type: string,
+    @Query('monthParams') monthParams: string,
+  ): Promise<WebResponse<MonthlyOutgoingStats[]>> {
+    const result = await this.outgoingDetailService.getStatsDailyPerMonth(
+      type,
+      monthParams,
+    );
     return {
       data: result,
     };

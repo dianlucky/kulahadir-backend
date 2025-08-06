@@ -39,3 +39,8 @@ export class AnnualOutgoingStats {
   totalAmount: number;
   data: OutgoingItemStats[];
 }
+
+export class MonthlyOutgoingStats {
+  date: string;
+  data: OutgoingItemStats[];
+}
